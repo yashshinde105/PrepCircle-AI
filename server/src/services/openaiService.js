@@ -53,22 +53,47 @@ Focus on helping them improve their critical thinking and communication skills.`
       ? `Previous discussion:\n${context}\n\nParticipant's latest point: "${userArgument}"\n\nAs the moderator, respond with a challenging question or counterpoint to help them think deeper:`
       : `The GD topic is: "${topic}". The participant just opened with: "${userArgument}"\n\nAs the moderator, respond with follow-up questions or points to explore:`;
 
-    // Use stable Gemini model name
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro",
-      generationConfig: {
-        maxOutputTokens: 200,
-        temperature: 0.9,
-      }
-    });
-
-    const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+    // Use available Gemini models (verified to work with this API key)
+    const modelNames = [
+      "gemini-2.5-flash",           // Latest fast model
+      "gemini-2.0-flash",            // Stable 2.0 flash
+      "gemini-flash-latest",         // Alias for latest flash
+      "gemini-pro-latest",           // Alias for latest pro
+      "gemini-2.5-pro"               // Latest pro model
+    ];
     
-    const result = await model.generateContent(fullPrompt);
-    const response = await result.response;
-    const text = response.text();
+    let lastError = null;
+    
+    for (const modelName of modelNames) {
+      try {
+        const model = genAI.getGenerativeModel({ 
+          model: modelName,
+          generationConfig: {
+            maxOutputTokens: 200,
+            temperature: 0.9,
+          }
+        });
 
-    return text.trim();
+        const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+        
+        const result = await model.generateContent(fullPrompt);
+        const response = await result.response;
+        const text = response.text();
+
+        console.log(`✅ Using Gemini model: ${modelName}`);
+        return text.trim();
+      } catch (error) {
+        lastError = error;
+        // Only log first attempt to avoid spam
+        if (modelNames.indexOf(modelName) === 0) {
+          console.log(`⚠️  Trying alternative models...`);
+        }
+        continue;
+      }
+    }
+    
+    // If all models failed, throw the last error
+    throw lastError;
   } catch (error) {
     console.error('Gemini API Error:', error);
     
