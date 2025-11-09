@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Award, TrendingUp, AlertCircle, Home, BarChart3, Sparkles, Trophy, Target } from 'lucide-react';
 import axios from 'axios';
+import Navbar from '../components/Navbar';
+import { GlowingEffect } from '../components/ui/glowing-effect';
 
 interface Round {
   roundNumber: number;
@@ -52,10 +54,13 @@ function Summary() {
 
   if (!summary) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-300 text-lg">Analyzing Performance...</p>
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-300 text-lg">Analyzing Performance...</p>
+          </div>
         </div>
       </div>
     );
@@ -83,15 +88,18 @@ function Summary() {
   };
 
   return (
-    <div className="min-h-screen p-8 relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
+      <Navbar />
+      
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      <div className="max-w-5xl mx-auto relative z-10">
-        {/* Performance Announcement */}
+      <div className="pt-24 pb-16 px-8 relative z-10">
+        <div className="max-w-5xl mx-auto">
+          {/* Performance Announcement */}
         <div className="card text-center mb-8 ai-glow animate-float">
           <div className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br ${getPerformanceColor(summary.performance)} rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform`}>
             <Trophy className="w-12 h-12 text-white" />
@@ -101,17 +109,47 @@ function Summary() {
           </h1>
           <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">{getPerformanceMessage(summary.performance)}</p>
           <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            <div className="glass-effect p-6 rounded-xl border border-purple-500/30">
-              <div className="text-sm text-slate-400 mb-1">Total Score</div>
-              <div className="text-5xl font-bold gradient-text">{summary.userScore}</div>
+            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
+              <GlowingEffect
+                spread={40}
+                glow={true}
+                disabled={false}
+                proximity={64}
+                inactiveZone={0.01}
+                borderWidth={2}
+              />
+              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6">
+                <div className="text-sm text-slate-400 mb-1">Total Score</div>
+                <div className="text-5xl font-bold gradient-text">{summary.userScore}</div>
+              </div>
             </div>
-            <div className="glass-effect p-6 rounded-xl border border-green-500/30">
-              <div className="text-sm text-slate-400 mb-1">Average Per Round</div>
-              <div className="text-5xl font-bold gradient-text">{summary.averageScore}</div>
+            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
+              <GlowingEffect
+                spread={40}
+                glow={true}
+                disabled={false}
+                proximity={64}
+                inactiveZone={0.01}
+                borderWidth={2}
+              />
+              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6">
+                <div className="text-sm text-slate-400 mb-1">Average Per Round</div>
+                <div className="text-5xl font-bold gradient-text">{summary.averageScore}</div>
+              </div>
             </div>
-            <div className="glass-effect p-6 rounded-xl border border-blue-500/30">
-              <div className="text-sm text-slate-400 mb-1">Rounds Completed</div>
-              <div className="text-5xl font-bold gradient-text">{summary.rounds.length}</div>
+            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
+              <GlowingEffect
+                spread={40}
+                glow={true}
+                disabled={false}
+                proximity={64}
+                inactiveZone={0.01}
+                borderWidth={2}
+              />
+              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6">
+                <div className="text-sm text-slate-400 mb-1">Rounds Completed</div>
+                <div className="text-5xl font-bold gradient-text">{summary.rounds.length}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -279,6 +317,7 @@ function Summary() {
             <Trophy className="w-5 h-5" />
             View Leaderboard
           </button>
+        </div>
         </div>
       </div>
     </div>

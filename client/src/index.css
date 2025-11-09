@@ -3,12 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white min-h-screen;
-    background-attachment: fixed;
-  }
-  
-  * {
+body {
+  @apply text-white min-h-screen;
+  background: #0f0f23;
+  background-attachment: fixed;
+}  * {
     @apply transition-all duration-300;
   }
 }
@@ -30,17 +29,17 @@
     @apply shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:shadow-[0_0_50px_rgba(168,85,247,0.6)];
   }
 
-  .gradient-text {
-    @apply bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent;
-  }
+.gradient-text {
+  @apply bg-gradient-to-r from-purple-300 via-purple-200 to-purple-300 bg-clip-text text-transparent;
+}
 
-  .glass-effect {
-    @apply bg-white/5 backdrop-blur-md border border-white/10;
-  }
+.glass-effect {
+  @apply bg-white/5 backdrop-blur-md border border-white/10;
+}
 
-  .neon-border {
-    @apply border-2 border-transparent bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-padding;
-  }
+.neon-border {
+  @apply border-2 border-transparent bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-padding;
+}
 }
 
 /* Custom animations */

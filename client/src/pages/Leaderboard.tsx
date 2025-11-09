@@ -1,5 +1,6 @@
 import { Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 function Leaderboard() {
   const navigate = useNavigate();
@@ -14,21 +15,23 @@ function Leaderboard() {
   ];
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">🏆 Leaderboard</h1>
-          <p className="text-gray-600">Top debaters ranked by performance</p>
-        </div>
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="pt-24 pb-16 px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold gradient-text mb-4">🏆 Leaderboard</h1>
+            <p className="text-gray-300">Top debaters ranked by performance</p>
+          </div>
 
-        <div className="card mb-6">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-4 px-4">Rank</th>
-                  <th className="text-left py-4 px-4">Name</th>
-                  <th className="text-center py-4 px-4">Wins</th>
+          <div className="glass-effect rounded-xl border border-purple-500/20 mb-6">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-purple-500/20">
+                    <th className="text-left py-4 px-4 text-gray-300">Rank</th>
+                    <th className="text-left py-4 px-4 text-gray-300">Name</th>
+                    <th className="text-center py-4 px-4 text-gray-300">Wins</th>
                   <th className="text-center py-4 px-4">Avg Score</th>
                   <th className="text-center py-4 px-4">Total Debates</th>
                 </tr>
@@ -59,7 +62,7 @@ function Leaderboard() {
                     <td className="py-4 px-4 text-center">
                       <span className="font-semibold text-primary">{entry.avgScore}</span>
                     </td>
-                    <td className="py-4 px-4 text-center">{entry.totalDebates}</td>
+                    <td className="py-4 px-4 text-center text-gray-300">{entry.totalDebates}</td>
                   </tr>
                 ))}
               </tbody>
@@ -72,6 +75,7 @@ function Leaderboard() {
             <Home className="w-5 h-5" />
             Back to Home
           </button>
+        </div>
         </div>
       </div>
     </div>

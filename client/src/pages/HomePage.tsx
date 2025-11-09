@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, Trophy, BookOpen, Sparkles, Brain, Zap, Target } from 'lucide-react';
 import axios from 'axios';
+import Navbar from '../components/Navbar';
+import { HeroSection } from '../components/ui/hero-section-dark';
+import { GlowingEffect } from '../components/ui/glowing-effect';
 
 interface Topic {
   id: number;
@@ -11,11 +14,19 @@ interface Topic {
 }
 
 function HomePage() {
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([
+    { id: 1, title: "Should AI replace human jobs?", category: "Technology", difficulty: "Medium" },
+    { id: 2, title: "Is remote work better than office work?", category: "Business", difficulty: "Easy" },
+    { id: 3, title: "Should social media be regulated?", category: "Society", difficulty: "Medium" },
+    { id: 4, title: "Is climate change the biggest threat to humanity?", category: "Environment", difficulty: "Hard" },
+    { id: 5, title: "Should college education be free?", category: "Education", difficulty: "Medium" },
+    { id: 6, title: "Is work-life balance achievable in modern times?", category: "Lifestyle", difficulty: "Easy" },
+  ]);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [userName, setUserName] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const formSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTopics();
@@ -27,6 +38,7 @@ function HomePage() {
       setTopics(response.data.topics);
     } catch (error) {
       console.error('Error fetching topics:', error);
+      // Using fallback topics already set in state
     }
   };
 
@@ -52,85 +64,120 @@ function HomePage() {
     }
   };
 
+  const scrollToForm = () => {
+    formSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen p-8 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
+    <div className="min-h-screen relative overflow-hidden">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <HeroSection
+        title="AI-Powered Interview Preparation"
+        subtitle={{
+          regular: "Master Group Discussions with ",
+          gradient: "Cutting-Edge AI Technology"
+        }}
+        description="Practice real-time debates with our intelligent AI moderator. Get instant feedback, improve your arguments, and ace your next interview GD round."
+        ctaText="Start Practicing Now"
+        onCtaClick={scrollToForm}
+        gridOptions={{
+          angle: 65,
+          opacity: 0.3,
+          cellSize: 50,
+          lightLineColor: "#6366f1",
+          darkLineColor: "#4f46e5",
+        }}
+      />
+      
+      {/* Features and Form Section */}
+      <div className="py-16 px-8 relative" ref={formSectionRef}>
+        <div className="max-w-6xl mx-auto relative z-10">
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-4 gap-6 mb-16">
+            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
+              <GlowingEffect
+                spread={40}
+                glow={true}
+                disabled={false}
+                proximity={64}
+                inactiveZone={0.01}
+                borderWidth={2}
+              />
+              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6 text-center group hover:scale-105 transition-transform">
+              <div className="bg-[#1a1a2e] w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 transition-all border border-purple-500/20">
+                <Mic className="w-10 h-10 text-purple-400" />
+              </div>
+                <h3 className="text-lg font-semibold mb-2 text-white">Voice AI</h3>
+                <p className="text-slate-400 text-sm">Real-time speech recognition & synthesis</p>
+              </div>
+            </div>
+            
+            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
+              <GlowingEffect
+                spread={40}
+                glow={true}
+                disabled={false}
+                proximity={64}
+                inactiveZone={0.01}
+                borderWidth={2}
+              />
+              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6 text-center group hover:scale-105 transition-transform">
+              <div className="bg-[#1a1a2e] w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 transition-all border border-purple-500/20">
+                <Brain className="w-10 h-10 text-purple-400" />
+              </div>
+                <h3 className="text-lg font-semibold mb-2 text-white">Smart Challenges</h3>
+                <p className="text-slate-400 text-sm">AI asks probing questions in real-time</p>
+              </div>
+            </div>
+            
+            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
+              <GlowingEffect
+                spread={40}
+                glow={true}
+                disabled={false}
+                proximity={64}
+                inactiveZone={0.01}
+                borderWidth={2}
+              />
+              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6 text-center group hover:scale-105 transition-transform">
+              <div className="bg-[#1a1a2e] w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 transition-all border border-purple-500/20">
+                <Target className="w-10 h-10 text-purple-400" />
+              </div>
+                <h3 className="text-lg font-semibold mb-2 text-white">Precision Scoring</h3>
+                <p className="text-slate-400 text-sm">Detailed analytics on every response</p>
+              </div>
+            </div>
+            
+            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
+              <GlowingEffect
+                spread={40}
+                glow={true}
+                disabled={false}
+                proximity={64}
+                inactiveZone={0.01}
+                borderWidth={2}
+              />
+              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6 text-center group hover:scale-105 transition-transform">
+              <div className="bg-[#1a1a2e] w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 transition-all border border-purple-500/20">
+                <Trophy className="w-10 h-10 text-purple-400" />
+              </div>
+                <h3 className="text-lg font-semibold mb-2 text-white">Track Progress</h3>
+                <p className="text-slate-400 text-sm">Detailed insights & improvement metrics</p>
+              </div>
+            </div>
+          </div>
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="text-center mb-16 animate-float">
-          <div className="flex items-center justify-center mb-6">
-            <Sparkles className="w-12 h-12 text-purple-400 mr-4 animate-pulse" />
-            <h1 className="text-6xl font-bold gradient-text">
-              AI-Powered GD Simulator
-            </h1>
-            <Sparkles className="w-12 h-12 text-blue-400 ml-4 animate-pulse" />
-          </div>
-          <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-            Master Group Discussions with cutting-edge AI technology. 
-            <span className="text-purple-400 font-semibold"> Train smarter, perform better.</span>
-          </p>
-          <div className="mt-6 flex items-center justify-center gap-4 text-sm text-slate-400">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span>AI Moderator Online</span>
+          {/* Setup Form */}
+          <div className="glass-effect rounded-xl p-8 border border-purple-500/20 max-w-3xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold gradient-text">Start Your Practice Session</h2>
+              <div className="flex items-center gap-2 text-sm text-slate-400">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                <span>Ready to Begin</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-yellow-400" />
-              <span>Powered by Gemini AI</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-4 gap-6 mb-16">
-          <div className="card text-center group hover:scale-105 ai-glow">
-            <div className="bg-gradient-to-br from-purple-500 to-purple-700 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:rotate-12 transition-transform">
-              <Mic className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2 text-white">Voice AI</h3>
-            <p className="text-slate-400 text-sm">Real-time speech recognition & synthesis</p>
-          </div>
-          
-          <div className="card text-center group hover:scale-105 ai-glow" style={{ animationDelay: '0.1s' }}>
-            <div className="bg-gradient-to-br from-blue-500 to-blue-700 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:rotate-12 transition-transform">
-              <Brain className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2 text-white">Smart Challenges</h3>
-            <p className="text-slate-400 text-sm">AI asks probing questions in real-time</p>
-          </div>
-          
-          <div className="card text-center group hover:scale-105 ai-glow" style={{ animationDelay: '0.2s' }}>
-            <div className="bg-gradient-to-br from-pink-500 to-pink-700 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:rotate-12 transition-transform">
-              <Target className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2 text-white">Precision Scoring</h3>
-            <p className="text-slate-400 text-sm">Advanced analytics on your performance</p>
-          </div>
-          
-          <div className="card text-center group hover:scale-105 ai-glow" style={{ animationDelay: '0.3s' }}>
-            <div className="bg-gradient-to-br from-cyan-500 to-cyan-700 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:rotate-12 transition-transform">
-              <Trophy className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2 text-white">Track Progress</h3>
-            <p className="text-slate-400 text-sm">Detailed insights & improvement metrics</p>
-          </div>
-        </div>
-
-        {/* Setup Form */}
-        <div className="card max-w-3xl mx-auto ai-glow">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold gradient-text">Start Your Practice Session</h2>
-            <div className="flex items-center gap-2 text-sm text-slate-400">
-              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-              <span>Ready to Begin</span>
-            </div>
-          </div>
           
           <div className="space-y-6">
             {/* Name Input */}
@@ -223,6 +270,7 @@ function HomePage() {
             <Trophy className="w-5 h-5" />
             <span>View Leaderboard</span>
           </button>
+        </div>
         </div>
       </div>
     </div>
