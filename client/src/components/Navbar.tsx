@@ -15,13 +15,14 @@ const Navbar = () => {
           {/* Logo & Brand */}
           <Link to="/" className="flex items-center space-x-2 group">
             <div className="relative">
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-12 h-12 rounded-2xl flex items-center justify-center transition-all">
-                <Brain className="h-6 w-6 text-white" />
-                <Sparkles className="h-4 w-4 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="PrepCircle AI Logo" 
+                className="w-16 h-16 rounded-full"
+              />
             </div>
             <span className="text-2xl font-bold gradient-text">
-              AI Debator
+              PrepCircle AI
             </span>
           </Link>
 

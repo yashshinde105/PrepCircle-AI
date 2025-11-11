@@ -12,12 +12,15 @@ const AboutUs = () => {
       <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center space-x-2 mb-4">
-              <Brain className="h-12 w-12 text-purple-400" />
-              <Sparkles className="h-8 w-8 text-blue-400 animate-pulse" />
+            <div className="inline-flex items-center justify-center mb-6">
+              <img 
+                src="/logo.png" 
+                alt="PrepCircle AI Logo" 
+                className="w-32 h-32 rounded-full shadow-purple-500/50"
+              />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold gradient-text mb-6">
-              About AI Debator
+              About PrepCircle AI
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Revolutionizing debate practice with cutting-edge AI technology. 
@@ -33,7 +36,7 @@ const AboutUs = () => {
             </h2>
             <p className="text-lg text-gray-300 leading-relaxed">
               We believe that effective communication and critical thinking are essential skills 
-              for success in today's world. AI Debator was created to help job seekers, students, 
+              for success in today's world. PrepCircle AI was created to help job seekers, students, 
               and professionals practice group discussions and debates in a safe, AI-powered environment. 
               Our platform provides real-time feedback, intelligent challenges, and comprehensive 
               performance analytics to help you improve faster.

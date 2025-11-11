@@ -1,7 +1,7 @@
 {
-  "name": "ai-debator-server",
+  "name": "prepcircle-ai-server",
   "version": "1.0.0",
-  "description": "Backend server for AI Debator",
+  "description": "Backend server for PrepCircle AI",
   "main": "src/server.js",
   "type": "module",
   "scripts": {

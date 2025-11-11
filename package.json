@@ -1,7 +1,7 @@
 {
-  "name": "ai-debator",
+  "name": "prepcircle-ai",
   "version": "1.0.0",
-  "description": "AI-powered debate platform with voice integration",
+  "description": "PrepCircle AI - AI-powered debate platform with voice integration",
   "private": true,
   "workspaces": [
     "client",

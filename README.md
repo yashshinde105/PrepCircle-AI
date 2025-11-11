@@ -1,4 +1,4 @@
-# 🎤 AI Debator
+# 🎤 PrepCircle AI
 
 > An advanced AI-powered debate platform with real-time voice integration, structured scoring, and comprehensive analysis powered by Google Gemini AI.
 
