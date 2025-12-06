@@ -182,9 +182,13 @@ function DebateRoom() {
       <div className="min-h-screen">
         <Navbar />
         <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-300 text-lg">Initializing AI Session...</p>
+          <div className="text-center animate-fade-in">
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-purple-500/30 rounded-full mx-auto mb-6"></div>
+              <div className="w-20 h-20 border-4 border-purple-500 border-t-transparent rounded-full animate-spin absolute top-0 left-1/2 -translate-x-1/2"></div>
+            </div>
+            <h2 className="text-xl font-semibold text-white mb-2">Initializing AI Session</h2>
+            <p className="text-slate-400">Preparing your debate environment...</p>
           </div>
         </div>
       </div>
@@ -195,213 +199,254 @@ function DebateRoom() {
     <div className="min-h-screen relative overflow-hidden">
       <Navbar />
       
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+      {/* Animated Background - Hidden on small screens for performance */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none hidden sm:block">
+        <div className="absolute top-20 right-20 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-violet-600/10 rounded-full blur-[100px] md:blur-[150px] animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-indigo-600/10 rounded-full blur-[100px] md:blur-[150px] animate-pulse" style={{ animationDelay: '1.5s' }}></div>
       </div>
 
-      <div className="pt-16 px-3 pb-4 relative z-10">
-        <div className="max-w-7xl mx-auto flex gap-4">
+      <div className="pt-16 sm:pt-20 px-3 sm:px-4 lg:px-6 pb-4 sm:pb-6 relative z-10">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Main Content */}
-          <div className="flex-1">
-            {/* Header */}
-            <div className="glass-effect rounded-xl border border-purple-500/20 p-4 mb-4 ai-glow">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-10 h-10 rounded-2xl flex items-center justify-center">
-                      <Brain className="w-5 h-5 text-white" />
+          <div className="flex-1 space-y-3 sm:space-y-4 lg:space-y-5">
+            {/* Header Card */}
+            <div className="card border border-purple-500/20 animate-slide-up p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <div className="bg-gradient-to-br from-violet-500 to-purple-600 w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 flex-shrink-0">
+                      <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
-                    <h1 className="text-xl font-bold gradient-text">{debate.topic}</h1>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                      Round {roundNumber}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-yellow-400" />
-                      Live AI Session
-                    </span>
+                    <div className="min-w-0">
+                      <h1 className="text-base sm:text-lg lg:text-xl font-bold text-white leading-tight truncate">{debate.topic}</h1>
+                      <div className="flex items-center gap-2 sm:gap-3 mt-1">
+                        <span className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-slate-400">
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-500/50"></div>
+                          Round {roundNumber}
+                        </span>
+                        <span className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-slate-400">
+                          <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
+                          Live
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="px-4 py-2 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl text-white shadow-lg shadow-purple-500/30">
-                <div className="text-xs font-medium opacity-90">Performance Score</div>
-                <div className="text-2xl font-bold">{userScore}</div>
-                <div className="text-xs opacity-75">points</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Timer */}
-        <div className="card mb-4 text-center ai-glow py-3">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <div className={`rounded-2xl flex items-center justify-center ${
-              timeLeft <= 10 
-                ? 'bg-gradient-to-br from-red-500 to-red-600 w-10 h-10 animate-pulse' 
-                : 'bg-gradient-to-br from-purple-500 to-purple-600 w-10 h-10'
-            }`}>
-              <Clock className="w-5 h-5 text-white" />
-            </div>
-            <span className={`text-4xl font-bold gradient-text ${timeLeft <= 10 ? 'animate-pulse' : ''}`}>
-              {timeLeft}s
-            </span>
-          </div>
-          <div className="w-full glass-effect rounded-full h-3 mb-2 overflow-hidden">
-            <div
-              className={`h-3 rounded-full transition-all duration-1000 ${
-                timeLeft > 30 
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
-                  : timeLeft > 10 
-                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500' 
-                    : 'bg-gradient-to-r from-red-500 to-pink-500 animate-pulse'
-              }`}
-              style={{ width: `${(timeLeft / 90) * 100}%` }}
-            />
-          </div>
-          <p className="text-xs text-slate-300 flex items-center justify-center gap-2">
-            {isTimerActive ? (
-              <>
-                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
-                Timer running for the discussion round
-              </>
-            ) : (
-              <>
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
-                Round paused
-              </>
-            )}
-          </p>
-        </div>
-
-        {/* GD Area */}
-        <div className="grid lg:grid-cols-2 gap-4 mb-4">
-          {/* User Side */}
-          <div className="card ai-glow group py-3">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-10 h-10 rounded-2xl flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-white">Your Response</h3>
-              {isListening && (
-                <div className="flex gap-1 ml-auto">
-                  <div className="w-1 h-6 bg-red-500 rounded-full animate-pulse"></div>
-                  <div className="w-1 h-6 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-1 h-6 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="flex-shrink-0 self-end sm:self-auto">
+                  <div className="px-3 sm:px-5 py-2 sm:py-3 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl sm:rounded-2xl text-white shadow-xl shadow-purple-500/25">
+                    <div className="text-[10px] sm:text-xs font-medium opacity-80 uppercase tracking-wider">Score</div>
+                    <div className="text-2xl sm:text-3xl font-bold">{userScore}</div>
+                    <div className="text-[10px] sm:text-xs opacity-70">points</div>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
-            <div className="glass-effect border border-blue-500/30 p-4 rounded-xl min-h-40 mb-3">
-              <p className="text-slate-200 leading-relaxed">
-                {userTranscript || (
-                  <span className="text-slate-500 italic flex items-center gap-2 text-sm">
-                    <Mic className="w-4 h-4" />
-                    Click the microphone to start speaking...
-                  </span>
+
+            {/* Timer Card */}
+            <div className="card border border-purple-500/20 text-center animate-slide-up p-4 sm:p-6" style={{ animationDelay: '100ms' }}>
+              <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg ${
+                  timeLeft <= 10 
+                    ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/40 animate-pulse' 
+                    : timeLeft <= 30
+                      ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30'
+                      : 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/30'
+                }`}>
+                  <Clock className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+                </div>
+                <span className={`text-3xl sm:text-4xl lg:text-5xl font-bold ${
+                  timeLeft <= 10 ? 'text-rose-400' : timeLeft <= 30 ? 'text-amber-400' : 'gradient-text'
+                } ${timeLeft <= 10 ? 'animate-pulse' : ''}`}>
+                  {timeLeft}s
+                </span>
+              </div>
+              
+              <div className="w-full bg-white/5 rounded-full h-2 sm:h-3 overflow-hidden mb-2 sm:mb-3">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ${
+                    timeLeft > 30 
+                      ? 'bg-gradient-to-r from-emerald-500 to-green-400' 
+                      : timeLeft > 10 
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-400' 
+                        : 'bg-gradient-to-r from-rose-500 to-red-400 animate-pulse'
+                  }`}
+                  style={{ width: `${(timeLeft / 90) * 100}%` }}
+                />
+              </div>
+              
+              <p className="text-xs sm:text-sm text-slate-400 flex items-center justify-center gap-2">
+                {isTimerActive ? (
+                  <>
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-500/50"></span>
+                    <span className="hidden sm:inline">Discussion round in progress</span>
+                    <span className="sm:hidden">In progress</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-slate-500 rounded-full"></span>
+                    Round paused
+                  </>
                 )}
               </p>
             </div>
-            <button
-              onClick={isListening ? handleStopSpeaking : handleStartSpeaking}
-              disabled={!isUserTurn || isSpeaking}
-              className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${
-                isListening
-                  ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-red-500/50 animate-pulse-glow'
-                  : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed'
-              }`}
-            >
-              {isListening ? (
-                <>
-                  <MicOff className="w-5 h-5" />
-                  <span>Stop Recording</span>
-                </>
-              ) : (
-                <>
-                  <Mic className="w-5 h-5" />
-                  <span>Start Speaking</span>
-                </>
-              )}
-            </button>
-          </div>
 
-          {/* AI Moderator Side */}
-          <div className="card ai-glow group py-3">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-10 h-10 rounded-2xl flex items-center justify-center">
-                <Bot className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-white">AI Moderator</h3>
-              {isSpeaking && (
-                <div className="flex items-center gap-2 ml-auto">
-                  <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-                  <span className="text-xs text-purple-400">Speaking...</span>
+            {/* Discussion Area */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-5">
+              {/* User Side */}
+              <div className="card border border-blue-500/20 animate-slide-up p-4 sm:p-6" style={{ animationDelay: '200ms' }}>
+                <div className="flex items-center justify-between mb-3 sm:mb-5">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="bg-gradient-to-br from-blue-500 to-cyan-600 w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                      <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white text-sm sm:text-base">Your Response</h3>
+                      <p className="text-[10px] sm:text-xs text-slate-500">Speak your argument</p>
+                    </div>
+                  </div>
+                  {isListening && (
+                    <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                      <div className="flex items-end gap-0.5">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <div 
+                            key={i} 
+                            className="w-1 bg-rose-400 rounded-full animate-pulse" 
+                            style={{ 
+                              height: `${8 + (i % 3) * 5}px`,
+                              animationDelay: `${i * 80}ms` 
+                            }}
+                          ></div>
+                        ))}
+                      </div>
+                      <span className="text-xs text-rose-400 font-medium hidden sm:inline">Recording</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="glass-effect border border-purple-500/30 p-4 rounded-xl min-h-40 mb-3 relative">
-              {isSpeaking && (
-                <div className="absolute top-3 right-3">
-                  <div className="flex gap-1">
-                    <div className="w-1.5 h-6 bg-purple-400 rounded-full animate-pulse"></div>
-                    <div className="w-1.5 h-6 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-1.5 h-6 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-1.5 h-6 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                
+                <div className="bg-[#12121f] border border-white/10 rounded-xl min-h-[120px] sm:min-h-[150px] lg:min-h-[180px] mb-3 sm:mb-4">
+                  <div className="p-3 sm:p-5">
+                    <p className="text-slate-200 leading-relaxed text-sm sm:text-[15px]">
+                      {userTranscript || (
+                        <span className="text-slate-500 flex items-center gap-2 text-xs sm:text-sm">
+                          <Mic className="w-3 h-3 sm:w-4 sm:h-4" />
+                          Click the microphone to start speaking...
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
-              )}
-              <p className="text-slate-200 leading-relaxed">
-                {moderatorResponse || (
-                  <span className="text-slate-500 italic flex items-center gap-2 text-sm">
-                    <Brain className="w-4 h-4" />
-                    AI is analyzing your point...
-                  </span>
-                )}
-              </p>
-            </div>
-            {isSpeaking && (
-              <div className="w-full glass-effect rounded-full h-2 overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 h-2 rounded-full animate-pulse shimmer" />
+                
+                <button
+                  onClick={isListening ? handleStopSpeaking : handleStartSpeaking}
+                  disabled={!isUserTurn || isSpeaking}
+                  className={`w-full py-3 sm:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 sm:gap-3 transition-all text-sm sm:text-base ${
+                    isListening
+                      ? 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-xl shadow-rose-500/30 animate-pulse-glow'
+                      : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-xl shadow-blue-500/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none'
+                  }`}
+                >
+                  {isListening ? (
+                    <>
+                      <MicOff className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span>Stop Recording</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span>Start Speaking</span>
+                    </>
+                  )}
+                </button>
               </div>
-            )}
-            {!isSpeaking && moderatorResponse && (
-              <div className="glass-effect p-2 rounded-xl border border-purple-500/30">
-                <p className="text-xs text-purple-300 italic flex items-center justify-center gap-2">
-                  <Brain className="w-3 h-3" />
-                  AI is challenging you to think deeper!
+
+              {/* AI Moderator Side */}
+              <div className="card border border-purple-500/20 animate-slide-up p-4 sm:p-6" style={{ animationDelay: '300ms' }}>
+                <div className="flex items-center justify-between mb-3 sm:mb-5">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="bg-gradient-to-br from-violet-500 to-purple-600 w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+                      <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white text-sm sm:text-base">AI Moderator</h3>
+                      <p className="text-[10px] sm:text-xs text-slate-500">Powered by Gemini</p>
+                    </div>
+                  </div>
+                  {isSpeaking && (
+                    <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                      <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400 animate-pulse" />
+                      <span className="text-xs text-purple-400 font-medium hidden sm:inline">Speaking</span>
+                      <div className="flex items-end gap-0.5">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <div 
+                            key={i} 
+                            className="w-1 bg-purple-400 rounded-full animate-pulse" 
+                            style={{ 
+                              height: `${8 + (i % 3) * 5}px`,
+                              animationDelay: `${i * 80}ms` 
+                            }}
+                          ></div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="bg-[#12121f] border border-white/10 rounded-xl min-h-[120px] sm:min-h-[150px] lg:min-h-[180px] mb-3 sm:mb-4">
+                  <div className="p-3 sm:p-5">
+                    <p className="text-slate-200 leading-relaxed text-sm sm:text-[15px]">
+                      {moderatorResponse || (
+                        <span className="text-slate-500 flex items-center gap-2 text-xs sm:text-sm">
+                          <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
+                          AI is analyzing your point...
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                
+                {isSpeaking ? (
+                  <div className="w-full bg-white/5 rounded-full h-1.5 sm:h-2 overflow-hidden">
+                    <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 h-full rounded-full shimmer" />
+                  </div>
+                ) : moderatorResponse && (
+                  <div className="p-2 sm:p-3 rounded-xl bg-purple-500/5 border border-purple-500/20">
+                    <p className="text-[10px] sm:text-xs text-purple-300 text-center flex items-center justify-center gap-1 sm:gap-2">
+                      <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">AI is challenging you to think deeper!</span>
+                      <span className="sm:hidden">Think deeper!</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Controls Card */}
+            <div className="card border border-purple-500/20 animate-slide-up p-4 sm:p-6" style={{ animationDelay: '400ms' }}>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-3 sm:mb-4">
+                <button
+                  onClick={startNewRound}
+                  disabled={timeLeft > 0 && isTimerActive}
+                  className="btn-primary flex items-center justify-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Zap className="w-4 h-4" />
+                  Start New Round
+                </button>
+                <button
+                  onClick={endGD}
+                  className="btn-secondary flex items-center justify-center gap-2 text-sm sm:text-base py-2.5 sm:py-3"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="hidden sm:inline">End Session & View Feedback</span>
+                  <span className="sm:hidden">End & View Feedback</span>
+                </button>
+              </div>
+              <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                <p className="text-sm text-slate-400 text-center flex items-center justify-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  Both you and the AI share the same 90-second timer for dynamic discussion
                 </p>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="card text-center ai-glow py-3">
-          <div className="flex gap-3 justify-center mb-3">
-            <button
-              onClick={startNewRound}
-              disabled={timeLeft > 0 && isTimerActive}
-              className="btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
-            >
-              Start New Round
-            </button>
-            <button
-              onClick={endGD}
-              className="btn-secondary px-6 py-2 flex items-center gap-2 text-sm"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>End Session & View Feedback</span>
-            </button>
-          </div>
-          <div className="glass-effect p-2 rounded-xl border border-purple-500/30 max-w-2xl mx-auto">
-            <p className="text-xs text-slate-300 flex items-center justify-center gap-2">
-              <Zap className="w-3 h-3 text-yellow-400" />
-              <span>Both you and the AI share the same 90-second timer. Engage in dynamic discussion!</span>
-            </p>
-          </div>
-        </div>
+            </div>
           </div>
           
           {/* History Sidebar */}

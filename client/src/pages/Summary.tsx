@@ -57,9 +57,13 @@ function Summary() {
       <div className="min-h-screen">
         <Navbar />
         <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-300 text-lg">Analyzing Performance...</p>
+          <div className="text-center animate-fade-in">
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-purple-500/30 rounded-full mx-auto mb-6"></div>
+              <div className="w-20 h-20 border-4 border-purple-500 border-t-transparent rounded-full animate-spin absolute top-0 left-1/2 -translate-x-1/2"></div>
+            </div>
+            <h2 className="text-xl font-semibold text-white mb-2">Analyzing Performance</h2>
+            <p className="text-slate-400">Preparing your detailed feedback...</p>
           </div>
         </div>
       </div>
@@ -67,10 +71,10 @@ function Summary() {
   }
 
   const getPerformanceColor = (perf: string) => {
-    if (perf === 'Excellent') return 'from-green-400 to-emerald-500';
+    if (perf === 'Excellent') return 'from-emerald-400 to-green-500';
     if (perf === 'Good') return 'from-blue-400 to-cyan-500';
-    if (perf === 'Average') return 'from-yellow-400 to-orange-500';
-    return 'from-orange-400 to-red-500';
+    if (perf === 'Average') return 'from-amber-400 to-orange-500';
+    return 'from-orange-400 to-rose-500';
   };
 
   const getPerformanceIcon = (perf: string) => {
@@ -93,231 +97,268 @@ function Summary() {
       
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-20 left-20 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[150px] animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      <div className="pt-24 pb-16 px-8 relative z-10">
+      <div className="pt-28 pb-16 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-5xl mx-auto">
-          {/* Performance Announcement */}
-        <div className="card text-center mb-8 ai-glow animate-float">
-          <div className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br ${getPerformanceColor(summary.performance)} rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform`}>
-            <Trophy className="w-12 h-12 text-white" />
-          </div>
-          <h1 className="text-5xl font-bold mb-3 gradient-text">
-            {summary.performance} Performance! {getPerformanceIcon(summary.performance)}
-          </h1>
-          <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">{getPerformanceMessage(summary.performance)}</p>
-          <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
-              <GlowingEffect
-                spread={40}
-                glow={true}
-                disabled={false}
-                proximity={64}
-                inactiveZone={0.01}
-                borderWidth={2}
-              />
-              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6">
-                <div className="text-sm text-slate-400 mb-1">Total Score</div>
-                <div className="text-5xl font-bold gradient-text">{summary.userScore}</div>
-              </div>
+          {/* Performance Hero Section */}
+          <div className="card border border-purple-500/20 text-center mb-10 animate-scale-in overflow-hidden">
+            {/* Decorative elements */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
+            
+            <div className={`w-28 h-28 mx-auto mb-6 bg-gradient-to-br ${getPerformanceColor(summary.performance)} rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform`}>
+              <Trophy className="w-14 h-14 text-white" />
             </div>
-            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
-              <GlowingEffect
-                spread={40}
-                glow={true}
-                disabled={false}
-                proximity={64}
-                inactiveZone={0.01}
-                borderWidth={2}
-              />
-              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6">
-                <div className="text-sm text-slate-400 mb-1">Average Per Round</div>
-                <div className="text-5xl font-bold gradient-text">{summary.averageScore}</div>
-              </div>
-            </div>
-            <div className="relative rounded-2xl border border-white/5 p-2 bg-white/[0.02]">
-              <GlowingEffect
-                spread={40}
-                glow={true}
-                disabled={false}
-                proximity={64}
-                inactiveZone={0.01}
-                borderWidth={2}
-              />
-              <div className="bg-[#1a1a2e]/50 backdrop-blur-sm rounded-xl p-6">
-                <div className="text-sm text-slate-400 mb-1">Rounds Completed</div>
-                <div className="text-5xl font-bold gradient-text">{summary.rounds.length}</div>
-              </div>
+            
+            <h1 className="text-4xl md:text-5xl font-bold mb-3">
+              <span className="gradient-text">{summary.performance} Performance!</span>
+              <span className="ml-3">{getPerformanceIcon(summary.performance)}</span>
+            </h1>
+            <p className="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">{getPerformanceMessage(summary.performance)}</p>
+            
+            {/* Stats Grid */}
+            <div className="grid md:grid-cols-3 gap-5 max-w-3xl mx-auto">
+              {[
+                { label: 'Total Score', value: summary.userScore, icon: Trophy },
+                { label: 'Average Per Round', value: summary.averageScore, icon: Target },
+                { label: 'Rounds Completed', value: summary.rounds.length, icon: BarChart3 },
+              ].map((stat, index) => (
+                <div key={index} className="relative rounded-2xl border border-white/5 p-1.5 bg-white/[0.02] animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
+                  <GlowingEffect
+                    spread={40}
+                    glow={true}
+                    disabled={false}
+                    proximity={64}
+                    inactiveZone={0.01}
+                    borderWidth={2}
+                  />
+                  <div className="bg-[#0f0f1a]/80 backdrop-blur-sm rounded-xl p-6">
+                    <stat.icon className="w-6 h-6 text-purple-400 mx-auto mb-3" />
+                    <div className="text-4xl font-bold gradient-text mb-1">{stat.value}</div>
+                    <div className="text-sm text-slate-500">{stat.label}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
 
-        {/* Topic */}
-        <div className="card mb-8 ai-glow">
-          <div className="flex items-center gap-3 mb-4">
-            <Target className="w-6 h-6 text-purple-400" />
-            <h2 className="text-2xl font-semibold text-white">GD Topic</h2>
+          {/* Topic Card */}
+          <div className="card border border-purple-500/20 mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                <Target className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-semibold text-white">Discussion Topic</h2>
+            </div>
+            <p className="text-lg text-slate-200 mb-3">{summary.topic}</p>
+            <p className="text-sm text-slate-500 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+              Completed {summary.rounds.length} round{summary.rounds.length > 1 ? 's' : ''} of discussion
+            </p>
           </div>
-          <p className="text-slate-200 text-xl mb-3">{summary.topic}</p>
-          <p className="text-sm text-slate-400 flex items-center gap-2">
-            <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-            You participated in {summary.rounds.length} round{summary.rounds.length > 1 ? 's' : ''} of discussion
-          </p>
-        </div>
 
-        {/* Round by Round Feedback */}
-        <div className="card mb-8 ai-glow">
-          <h2 className="text-3xl font-semibold mb-6 flex items-center gap-3 gradient-text">
-            <BarChart3 className="w-8 h-8 text-purple-400" />
-            Round-by-Round Analysis
-          </h2>
-          <div className="space-y-6">
-            {summary.rounds.map((round) => (
-              <div key={round.roundNumber} className="glass-effect p-6 rounded-xl border-l-4 border-purple-500">
-                <h3 className="font-bold text-xl mb-4 text-white flex items-center gap-2">
-                  <span className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-sm">
-                    {round.roundNumber}
-                  </span>
-                  Round {round.roundNumber}
-                </h3>
-                
-                {/* User Response */}
-                <div className="glass-effect border border-blue-500/30 p-5 rounded-xl mb-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="font-semibold text-blue-400 flex items-center gap-2">
-                      <Award className="w-5 h-5" />
-                      Your Response
-                    </span>
-                    <span className={`font-bold text-xl px-4 py-1 rounded-full ${
-                      round.userScore >= 75 ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 
-                      round.userScore >= 60 ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 
-                      'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+          {/* Round Analysis */}
+          <div className="card border border-purple-500/20 mb-8 animate-slide-up" style={{ animationDelay: '200ms' }}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-semibold text-white">Round-by-Round Analysis</h2>
+            </div>
+            
+            <div className="space-y-6">
+              {summary.rounds.map((round, index) => (
+                <div 
+                  key={round.roundNumber} 
+                  className="bg-white/[0.02] rounded-xl border border-white/5 overflow-hidden animate-slide-up"
+                  style={{ animationDelay: `${(index + 3) * 100}ms` }}
+                >
+                  {/* Round Header */}
+                  <div className="flex items-center justify-between p-4 bg-white/[0.03] border-b border-white/5">
+                    <div className="flex items-center gap-3">
+                      <span className="w-8 h-8 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-lg flex items-center justify-center text-sm font-bold text-white">
+                        {round.roundNumber}
+                      </span>
+                      <span className="font-semibold text-white">Round {round.roundNumber}</span>
+                    </div>
+                    <span className={`text-xl font-bold px-4 py-1.5 rounded-lg ${
+                      round.userScore >= 75 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
+                      round.userScore >= 60 ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 
+                      'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                     }`}>
                       {round.userScore}/100
                     </span>
                   </div>
-                  <p className="text-slate-200 text-base mb-3 leading-relaxed">{round.userArgument}</p>
-                  <div className="mt-3 pt-3 border-t border-blue-500/20">
-                    <p className="text-sm text-slate-400 flex items-center gap-2">
-                      {round.userScore >= 75 ? '✅ Excellent response!' : 
-                       round.userScore >= 60 ? '👍 Good points made' : 
-                       '💡 Room for improvement'}
-                    </p>
-                  </div>
-                </div>
+                  
+                  <div className="p-5 space-y-4">
+                    {/* User Response */}
+                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Award className="w-4 h-4 text-blue-400" />
+                        <span className="font-medium text-blue-400 text-sm">Your Response</span>
+                      </div>
+                      <p className="text-slate-300 leading-relaxed">{round.userArgument}</p>
+                      <p className="text-sm text-slate-500 mt-3 pt-3 border-t border-blue-500/10 flex items-center gap-2">
+                        {round.userScore >= 75 ? '✅ Excellent response!' : 
+                         round.userScore >= 60 ? '👍 Good points made' : 
+                         '💡 Room for improvement'}
+                      </p>
+                    </div>
 
-                {/* Moderator Feedback */}
-                <div className="glass-effect border border-purple-500/30 p-5 rounded-xl">
-                  <div className="flex items-center mb-3">
-                    <span className="font-semibold text-purple-400 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5" />
-                      AI Moderator's Challenge
-                    </span>
+                    {/* AI Challenge */}
+                    <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="w-4 h-4 text-purple-400" />
+                        <span className="font-medium text-purple-400 text-sm">AI Moderator's Challenge</span>
+                      </div>
+                      <p className="text-slate-300 leading-relaxed italic">{round.aiArgument}</p>
+                    </div>
                   </div>
-                  <p className="text-slate-300 text-base italic leading-relaxed">{round.aiArgument}</p>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Feedback Section */}
+          <div className="card border border-purple-500/20 mb-10 animate-slide-up" style={{ animationDelay: '300ms' }}>
+            <h2 className="text-xl font-semibold text-white mb-6">Key Insights & Recommendations</h2>
+            
+            <div className="grid md:grid-cols-2 gap-5 mb-6">
+              {/* Strengths */}
+              <div className="p-5 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <h3 className="font-semibold text-emerald-400">Strengths</h3>
+                </div>
+                <ul className="space-y-2">
+                  {summary.averageScore >= 75 && (
+                    <li className="flex items-start gap-2 text-slate-300 text-sm">
+                      <span className="text-emerald-400 mt-1">•</span>
+                      Strong logical reasoning and clear communication
+                    </li>
+                  )}
+                  {summary.rounds.filter(r => r.userScore >= 70).length >= summary.rounds.length * 0.7 && (
+                    <li className="flex items-start gap-2 text-slate-300 text-sm">
+                      <span className="text-emerald-400 mt-1">•</span>
+                      Consistent performance throughout the GD
+                    </li>
+                  )}
+                  {summary.rounds.length >= 3 && (
+                    <li className="flex items-start gap-2 text-slate-300 text-sm">
+                      <span className="text-emerald-400 mt-1">•</span>
+                      Good stamina - maintained engagement across rounds
+                    </li>
+                  )}
+                  {summary.averageScore >= 80 && (
+                    <li className="flex items-start gap-2 text-slate-300 text-sm">
+                      <span className="text-emerald-400 mt-1">•</span>
+                      Excellent use of examples and evidence
+                    </li>
+                  )}
+                  {summary.averageScore < 80 && summary.averageScore >= 60 && (
+                    <li className="flex items-start gap-2 text-slate-300 text-sm">
+                      <span className="text-emerald-400 mt-1">•</span>
+                      Demonstrated understanding of the topic
+                    </li>
+                  )}
+                </ul>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Performance Insights */}
-        <div className="card mb-8 ai-glow">
-          <h2 className="text-3xl font-semibold mb-6 gradient-text">Key Feedback & Improvements</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="glass-effect p-6 rounded-xl border border-green-500/30">
-              <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-green-400">
-                <TrendingUp className="w-6 h-6" />
-                What You Did Well
-              </h3>
-              <ul className="list-disc list-inside space-y-3 text-slate-300">
-                {summary.averageScore >= 75 && (
-                  <li>Strong logical reasoning and clear communication</li>
-                )}
-                {summary.rounds.filter(r => r.userScore >= 70).length >= summary.rounds.length * 0.7 && (
-                  <li>Consistent performance throughout the GD</li>
-                )}
-                {summary.rounds.length >= 3 && (
-                  <li>Good stamina - maintained engagement across rounds</li>
-                )}
-                {summary.averageScore >= 80 && (
-                  <li>Excellent use of examples and evidence</li>
-                )}
-                {summary.averageScore < 80 && summary.averageScore >= 60 && (
-                  <li>Demonstrated understanding of the topic</li>
-                )}
-              </ul>
+              {/* Areas to Improve */}
+              <div className="p-5 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                    <AlertCircle className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <h3 className="font-semibold text-amber-400">Areas to Focus On</h3>
+                </div>
+                <ul className="space-y-2">
+                  {summary.averageScore < 60 && (
+                    <>
+                      <li className="flex items-start gap-2 text-slate-300 text-sm">
+                        <span className="text-amber-400 mt-1">•</span>
+                        Provide more specific examples and evidence
+                      </li>
+                      <li className="flex items-start gap-2 text-slate-300 text-sm">
+                        <span className="text-amber-400 mt-1">•</span>
+                        Structure your points with clear logical flow
+                      </li>
+                    </>
+                  )}
+                  {summary.averageScore >= 60 && summary.averageScore < 75 && (
+                    <>
+                      <li className="flex items-start gap-2 text-slate-300 text-sm">
+                        <span className="text-amber-400 mt-1">•</span>
+                        Add more real-world examples to support claims
+                      </li>
+                      <li className="flex items-start gap-2 text-slate-300 text-sm">
+                        <span className="text-amber-400 mt-1">•</span>
+                        Consider multiple perspectives before concluding
+                      </li>
+                    </>
+                  )}
+                  {summary.rounds.some(r => r.userScore < 50) && (
+                    <li className="flex items-start gap-2 text-slate-300 text-sm">
+                      <span className="text-amber-400 mt-1">•</span>
+                      Practice time management while speaking
+                    </li>
+                  )}
+                  {summary.averageScore >= 75 && (
+                    <>
+                      <li className="flex items-start gap-2 text-slate-300 text-sm">
+                        <span className="text-amber-400 mt-1">•</span>
+                        Continue practicing to maintain consistency
+                      </li>
+                      <li className="flex items-start gap-2 text-slate-300 text-sm">
+                        <span className="text-amber-400 mt-1">•</span>
+                        Explore more complex arguments and counterpoints
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
             </div>
-            <div className="glass-effect p-6 rounded-xl border border-orange-500/30">
-              <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-orange-400">
-                <AlertCircle className="w-6 h-6" />
-                Areas to Focus On
-              </h3>
-              <ul className="list-disc list-inside space-y-3 text-slate-300">
-                {summary.averageScore < 60 && (
-                  <>
-                    <li>Provide more specific examples and evidence</li>
-                    <li>Structure your points with clear logical flow</li>
-                  </>
-                )}
-                {summary.averageScore >= 60 && summary.averageScore < 75 && (
-                  <>
-                    <li>Add more real-world examples to support claims</li>
-                    <li>Consider multiple perspectives before concluding</li>
-                  </>
-                )}
-                {summary.rounds.some(r => r.userScore < 50) && (
-                  <li>Practice time management while speaking</li>
-                )}
-                {summary.averageScore >= 75 && (
-                  <>
-                    <li>Continue practicing to maintain consistency</li>
-                    <li>Explore more complex arguments and counterpoints</li>
-                  </>
-                )}
-              </ul>
+            
+            {/* Overall AI Feedback */}
+            <div className="p-5 rounded-xl bg-purple-500/5 border border-purple-500/20">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-5 h-5 text-purple-400" />
+                <h4 className="font-semibold text-purple-400">AI Moderator's Overall Assessment</h4>
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                {summary.averageScore >= 80 && 
+                  'Outstanding performance! You demonstrated strong critical thinking, clear communication, and excellent use of examples. You\'re ready for real GD rounds.'}
+                {summary.averageScore >= 70 && summary.averageScore < 80 &&
+                  'Good job! You showed solid understanding and decent communication. Focus on adding more concrete examples and addressing counterpoints to reach the next level.'}
+                {summary.averageScore >= 60 && summary.averageScore < 70 &&
+                  'Average performance. You have the basics down but need to work on logical reasoning, providing evidence, and structuring your arguments better.'}
+                {summary.averageScore < 60 &&
+                  'Keep practicing! Work on organizing your thoughts, providing specific examples, and speaking clearly. Regular practice will help you improve significantly.'}
+              </p>
             </div>
           </div>
-          
-          {/* Overall Feedback */}
-          <div className="mt-6 glass-effect p-6 rounded-xl border border-purple-500/30">
-            <h4 className="font-bold text-lg mb-3 flex items-center gap-2 text-purple-400">
-              <Sparkles className="w-5 h-5" />
-              AI Moderator's Overall Feedback
-            </h4>
-            <p className="text-slate-300 leading-relaxed">
-              {summary.averageScore >= 80 && 
-                'Outstanding performance! You demonstrated strong critical thinking, clear communication, and excellent use of examples. You\'re ready for real GD rounds.'}
-              {summary.averageScore >= 70 && summary.averageScore < 80 &&
-                'Good job! You showed solid understanding and decent communication. Focus on adding more concrete examples and addressing counterpoints to reach the next level.'}
-              {summary.averageScore >= 60 && summary.averageScore < 70 &&
-                'Average performance. You have the basics down but need to work on logical reasoning, providing evidence, and structuring your arguments better.'}
-              {summary.averageScore < 60 &&
-                'Keep practicing! Work on organizing your thoughts, providing specific examples, and speaking clearly. Regular practice will help you improve significantly.'}
-            </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: '400ms' }}>
+            <button
+              onClick={() => navigate('/')}
+              className="btn-primary flex items-center justify-center gap-2"
+            >
+              <Home className="w-5 h-5" />
+              Practice Another GD
+            </button>
+            <button
+              onClick={() => navigate('/leaderboard')}
+              className="btn-secondary flex items-center justify-center gap-2"
+            >
+              <Trophy className="w-5 h-5" />
+              View Leaderboard
+            </button>
           </div>
-        </div>
-
-
-        {/* Actions */}
-        <div className="flex gap-4 justify-center flex-wrap">
-          <button
-            onClick={() => navigate('/')}
-            className="btn-primary px-8 py-4 text-lg flex items-center gap-2"
-          >
-            <Home className="w-5 h-5" />
-            Practice Another GD
-          </button>
-          <button
-            onClick={() => navigate('/leaderboard')}
-            className="btn-secondary px-8 py-4 text-lg flex items-center gap-2"
-          >
-            <Trophy className="w-5 h-5" />
-            View Leaderboard
-          </button>
-        </div>
         </div>
       </div>
     </div>
