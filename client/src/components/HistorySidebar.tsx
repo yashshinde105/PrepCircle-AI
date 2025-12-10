@@ -23,7 +23,7 @@ const HistorySidebar = ({ rounds, currentRound }: HistorySidebarProps) => {
       <div className="glass-effect rounded-xl p-4 border border-purple-500/20 h-full">
         <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
           <Clock className="h-4 w-4 text-purple-400" />
-          Debate History
+          GD History
         </h2>
         <div className="text-center py-8 text-gray-400">
           <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -40,7 +40,7 @@ const HistorySidebar = ({ rounds, currentRound }: HistorySidebarProps) => {
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-8 h-8 rounded-xl flex items-center justify-center">
           <Clock className="h-4 w-4 text-white" />
         </div>
-        Debate History
+        GD History
       </h2>
       
       <div className="space-y-3">

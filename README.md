@@ -1,20 +1,20 @@
-# 🎤 PrepCircle AI
+# 🎙️ PrepCircle AI
 
-> An advanced AI-powered debate platform with real-time voice integration, structured scoring, and comprehensive analysis powered by Google Gemini AI.
+> An advanced AI-powered Group Discussion (GD) practice platform with real-time voice integration, structured scoring, and comprehensive analysis for interview preparation.
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
-[![Gemini AI](https://img.shields.io/badge/Gemini-AI-purple.svg)](https://ai.google.dev/)
+[![Custom AI](https://img.shields.io/badge/Custom-AI-purple.svg)]()
 
 ## ✨ Features
 
 ### Core Capabilities
-- 🎙️ **Real-Time Voice Debates** - Natural conversation flow using Web Speech API
-- ⏱️ **90-Second Rounds** - Timer-based evaluation for fair debate pacing
+- 🎙️ **Real-Time Voice GD** - Natural conversation flow using Web Speech API
+- ⏱️ **90-Second Rounds** - Timer-based evaluation for fair GD pacing
 - 📊 **Structured Scoring** - Relevance (35pts), Strength (40pts), Engagement (25pts)
-- 🤖 **AI Opponent** - Powered by Google Gemini AI
-- 📝 **Live Transcription** - Real-time display of arguments
-- 📈 **Performance Analytics** - Comprehensive post-debate analysis
+- 🤖 **AI Participants** - Two AI agents (Alex & Jordan) for realistic GD practice
+- 📝 **Live Transcription** - Real-time display of your points
+- 📈 **Performance Analytics** - Comprehensive post-GD analysis
 - 🏆 **Leaderboard** - Track and compare your performance
 
 ### Design
@@ -42,11 +42,12 @@ Create `.env` file in the `server/` directory:
 
 ```env
 PORT=3000
-GEMINI_API_KEY=your_gemini_api_key_here
-USE_MOCK_AI=false
-```
+CLIENT_URL=http://localhost:5173
 
-Get your API key at [Google AI Studio](https://ai.google.dev/)
+# TODO: Add your custom model endpoint
+# CUSTOM_MODEL_ENDPOINT=http://localhost:8000/api/generate
+# CUSTOM_MODEL_API_KEY=your_api_key_here
+```
 
 ### Run the Application
 
@@ -70,19 +71,19 @@ npm run clean       # Remove all node_modules folders
 ## 📁 Project Structure
 
 ```
-ai-debator/
+prepcircle-ai/
 ├── client/                 # React frontend (TypeScript + Vite)
 │   ├── src/
-│   │   ├── pages/         # HomePage, DebateRoom, Summary, Leaderboard
+│   │   ├── pages/         # HomePage, GDRoom, Summary, Leaderboard
 │   │   ├── hooks/         # useSpeechRecognition, useSpeechSynthesis
 │   │   ├── App.tsx
 │   │   └── index.css      # Tailwind + custom animations
 │   └── package.json
 ├── server/                # Node.js backend
 │   ├── src/
-│   │   ├── controllers/   # debateController.js
-│   │   ├── routes/        # debateRoutes.js
-│   │   ├── services/      # openaiService, scoringService
+│   │   ├── controllers/   # gdController.js
+│   │   ├── routes/        # gdRoutes.js
+│   │   ├── services/      # aiService, scoringService
 │   │   ├── socket/        # socketHandler.js
 │   │   ├── data/          # topics.js
 │   │   └── server.js
@@ -108,24 +109,23 @@ ai-debator/
 ### Backend
 - **Node.js + Express** - Server framework
 - **Socket.io** - WebSocket support
-- **Google Gemini AI** - AI debate opponent
+- **Custom AI Model** - AI GD participants (ready for your trained model)
 - **UUID** - Unique identifiers
 
 ## 📖 How to Use
 
-### Starting a Debate
+### Starting a GD Session
 1. Enter your name
-2. Select a debate topic (Technology, Society, Ethics, etc.)
-3. Choose your stance (Pro or Con)
-4. Click "Start Debate"
+2. Select a GD topic (Technology, Society, Ethics, etc.)
+3. Click "Start GD Practice"
 
-### During the Debate
+### During the GD
 1. Click the microphone to speak (90 seconds per round)
 2. See your words transcribed in real-time
-3. Listen to AI's response with text-to-speech
+3. Listen to AI participants respond with text-to-speech
 4. Track your score after each round
 
-### After the Debate
+### After the GD
 - Review final scores and performance insights
 - Analyze round-by-round breakdown
 - Check the leaderboard
@@ -170,7 +170,6 @@ npm install <package> -D
 
 - [User Guide](docs/USER_GUIDE.md)
 - [Setup Instructions](docs/SETUP.md)
-- [Gemini AI Setup](docs/GEMINI_SETUP.md)
 - [Project Summary](docs/PROJECT_SUMMARY.md)
 
 ## 🤝 Contributing
@@ -186,10 +185,9 @@ MIT License - feel free to use for learning and development.
 
 ## 🙏 Acknowledgments
 
-- Google Gemini AI for intelligent debate responses
 - Web Speech API for voice capabilities
 - React and Node.js communities
 
 ---
 
-**Built with ❤️ for debate practice and interview preparation**
+**Built with ❤️ for GD practice and interview preparation**

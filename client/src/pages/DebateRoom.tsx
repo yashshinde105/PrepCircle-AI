@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Mic, MicOff, Clock, User, Bot, Sparkles, Brain, Zap } from 'lucide-react';
+import { Mic, MicOff, Clock, User, Bot, Sparkles, Brain, Zap, Users } from 'lucide-react';
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
@@ -20,6 +20,7 @@ interface Round {
   roundNumber: number;
   userArgument: string;
   aiArgument: string;
+  ai2Argument?: string;
   scores: {
     relevance: number;
     strength: number;
@@ -28,12 +29,93 @@ interface Round {
   timestamp: Date;
 }
 
+// AI Participant names and personas
+const AI_PARTICIPANTS = {
+  ai1: {
+    name: 'Alex (AI)',
+    role: 'Supportive Analyst',
+    color: 'purple',
+    gradient: 'from-violet-500 to-purple-600',
+    shadowColor: 'shadow-purple-500/30',
+    borderColor: 'border-purple-500/20',
+    bgColor: 'bg-purple-500/10',
+    textColor: 'text-purple-400'
+  },
+  ai2: {
+    name: 'Jordan (AI)',
+    role: 'Critical Thinker',
+    color: 'emerald',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadowColor: 'shadow-emerald-500/30',
+    borderColor: 'border-emerald-500/20',
+    bgColor: 'bg-emerald-500/10',
+    textColor: 'text-emerald-400'
+  }
+};
+
+// Custom hook for typewriter effect synced with speech
+const useTypewriter = () => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Calculate speed based on speech rate (approximately 150 words per minute at rate 1.0)
+  // That's about 400ms per word
+  const typeText = useCallback((fullText: string, wordsPerMinute: number = 150): Promise<void> => {
+    return new Promise((resolve) => {
+      setDisplayedText('');
+      setIsTyping(true);
+      
+      const words = fullText.split(' ');
+      let currentIndex = 0;
+      
+      // Calculate ms per word based on speech rate
+      // 150 words per minute = 60000ms / 150 = 400ms per word
+      const msPerWord = Math.round(60000 / wordsPerMinute);
+      
+      intervalRef.current = setInterval(() => {
+        if (currentIndex < words.length) {
+          setDisplayedText(prev => prev + (currentIndex > 0 ? ' ' : '') + words[currentIndex]);
+          currentIndex++;
+        } else {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          setIsTyping(false);
+          resolve();
+        }
+      }, msPerWord);
+    });
+  }, []);
+
+  // Complete typing immediately - show full text
+  const complete = useCallback((fullText: string) => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setDisplayedText(fullText);
+    setIsTyping(false);
+  }, []);
+
+  const reset = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setDisplayedText('');
+    setIsTyping(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
+
+  return { displayedText, isTyping, typeText, complete, reset };
+};
+
 function DebateRoom() {
   const { debateId } = useParams();
   const navigate = useNavigate();
   const [debate, setDebate] = useState<Debate | null>(null);
   const [userTranscript, setUserTranscript] = useState('');
-  const [moderatorResponse, setModeratorResponse] = useState('');
+  const [ai1FullResponse, setAi1FullResponse] = useState('');
+  const [ai2FullResponse, setAi2FullResponse] = useState('');
+  const [currentSpeaker, setCurrentSpeaker] = useState<'user' | 'ai1' | 'ai2' | null>(null);
   const [timeLeft, setTimeLeft] = useState(90);
   const [isUserTurn, setIsUserTurn] = useState(true);
   const [userScore, setUserScore] = useState(0);
@@ -41,6 +123,10 @@ function DebateRoom() {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [rounds, setRounds] = useState<Round[]>([]);
   const socketRef = useRef<Socket | null>(null);
+  
+  // Typewriter hooks for each AI
+  const ai1Typewriter = useTypewriter();
+  const ai2Typewriter = useTypewriter();
   
   const { isListening, startListening, stopListening } = useSpeechRecognition(
     (transcript) => setUserTranscript(transcript)
@@ -57,9 +143,15 @@ function DebateRoom() {
     socketRef.current.emit('join-debate', debateId);
     
     socketRef.current.on('ai-response', (data) => {
-      setModeratorResponse(data.text);
+      // Handle responses from both AI agents
+      if (data.agent === 'ai2') {
+        setAi2FullResponse(data.text);
+        setCurrentSpeaker('ai2');
+      } else {
+        setAi1FullResponse(data.text);
+        setCurrentSpeaker('ai1');
+      }
       speak(data.text);
-      // Don't stop timer - AI speaks within the same 90-second round
     });
 
     // Start the timer when component mounts
@@ -114,7 +206,11 @@ function DebateRoom() {
       setTimeout(() => {
         setRoundNumber(roundNumber + 1);
         setUserTranscript('');
-        setModeratorResponse('');
+        setAi1FullResponse('');
+        setAi2FullResponse('');
+        ai1Typewriter.reset();
+        ai2Typewriter.reset();
+        setCurrentSpeaker(null);
         setTimeLeft(90);
         setIsTimerActive(true);
         setIsUserTurn(true);
@@ -133,13 +229,13 @@ function DebateRoom() {
       });
 
       setUserScore(response.data.totalUserScore);
-      setModeratorResponse(response.data.aiResponse);
       
       // Add to rounds history
       const newRound: Round = {
         roundNumber: roundNumber,
         userArgument: userTranscript,
         aiArgument: response.data.aiResponse,
+        ai2Argument: response.data.ai2Response || '',
         scores: {
           relevance: response.data.scores?.relevance || 0,
           strength: response.data.scores?.strength || 0,
@@ -151,13 +247,50 @@ function DebateRoom() {
       
       // AI speaks within the same round - timer keeps running
       setIsUserTurn(false);
-      speak(response.data.aiResponse);
       
-      // After AI speaks, allow user to respond again in the same round
-      setTimeout(() => {
-        setIsUserTurn(true);
-        setUserTranscript(''); // Clear for next input
-      }, 3000); // Short delay to let AI finish speaking
+      // Reset typewriters for new responses
+      ai1Typewriter.reset();
+      ai2Typewriter.reset();
+      setAi1FullResponse(''); // Clear previous response
+      setAi2FullResponse(''); // Clear previous response
+      
+      // ============ STEP 1: ALEX (AI1) SPEAKS FIRST ============
+      setCurrentSpeaker('ai1');
+      
+      // Start Alex's typewriter synced with speech (150 WPM matches speech rate 1.0)
+      ai1Typewriter.typeText(response.data.aiResponse, 150);
+      
+      // Wait for Alex's speech to FULLY complete
+      await speak(response.data.aiResponse);
+      
+      // Show Alex's full text after speech ends (for persistent display)
+      ai1Typewriter.complete(response.data.aiResponse);
+      setAi1FullResponse(response.data.aiResponse);
+      
+      // ============ PAUSE BETWEEN SPEAKERS ============
+      setCurrentSpeaker(null);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // ============ STEP 2: JORDAN (AI2) SPEAKS SECOND ============
+      if (response.data.ai2Response) {
+        setCurrentSpeaker('ai2');
+        
+        // Start Jordan's typewriter synced with speech
+        ai2Typewriter.typeText(response.data.ai2Response, 150);
+        
+        // Wait for Jordan's speech to FULLY complete
+        await speak(response.data.ai2Response);
+        
+        // Show Jordan's full text after speech ends (for persistent display)
+        ai2Typewriter.complete(response.data.ai2Response);
+        setAi2FullResponse(response.data.ai2Response);
+      }
+      
+      // ============ DONE - USER'S TURN ============
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setIsUserTurn(true);
+      setCurrentSpeaker(null);
+      setUserTranscript(''); // Clear for next input
       
     } catch (error) {
       console.error('Error submitting argument:', error);
@@ -167,7 +300,11 @@ function DebateRoom() {
   const startNewRound = () => {
     setRoundNumber(roundNumber + 1);
     setUserTranscript('');
-    setModeratorResponse('');
+    setAi1FullResponse('');
+    setAi2FullResponse('');
+    ai1Typewriter.reset();
+    ai2Typewriter.reset();
+    setCurrentSpeaker(null);
     setTimeLeft(90);
     setIsTimerActive(true);
     setIsUserTurn(true);
@@ -225,8 +362,12 @@ function DebateRoom() {
                           Round {roundNumber}
                         </span>
                         <span className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-slate-400">
+                          <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-400" />
+                          3 Participants
+                        </span>
+                        <span className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-slate-400">
                           <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
-                          Live
+                          Live GD
                         </span>
                       </div>
                     </div>
@@ -234,9 +375,43 @@ function DebateRoom() {
                 </div>
                 <div className="flex-shrink-0 self-end sm:self-auto">
                   <div className="px-3 sm:px-5 py-2 sm:py-3 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl sm:rounded-2xl text-white shadow-xl shadow-purple-500/25">
-                    <div className="text-[10px] sm:text-xs font-medium opacity-80 uppercase tracking-wider">Score</div>
+                    <div className="text-[10px] sm:text-xs font-medium opacity-80 uppercase tracking-wider">Your Score</div>
                     <div className="text-2xl sm:text-3xl font-bold">{userScore}</div>
                     <div className="text-[10px] sm:text-xs opacity-70">points</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Participants Bar */}
+              <div className="mt-4 pt-4 border-t border-white/5">
+                <div className="flex items-center justify-center gap-4 sm:gap-8">
+                  {/* User */}
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${currentSpeaker === null && isListening ? 'bg-blue-500/20 border border-blue-500/40' : 'bg-white/5'}`}>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm text-white font-medium">You</span>
+                    {isListening && <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>}
+                  </div>
+                  
+                  {/* AI 1 - Alex */}
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${currentSpeaker === 'ai1' ? 'bg-purple-500/20 border border-purple-500/40' : 'bg-white/5'}`}>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm text-white font-medium hidden sm:inline">{AI_PARTICIPANTS.ai1.name}</span>
+                    <span className="text-sm text-white font-medium sm:hidden">Alex</span>
+                    {currentSpeaker === 'ai1' && <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>}
+                  </div>
+                  
+                  {/* AI 2 - Jordan */}
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${currentSpeaker === 'ai2' ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-white/5'}`}>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm text-white font-medium hidden sm:inline">{AI_PARTICIPANTS.ai2.name}</span>
+                    <span className="text-sm text-white font-medium sm:hidden">Jordan</span>
+                    {currentSpeaker === 'ai2' && <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>}
                   </div>
                 </div>
               </div>
@@ -290,46 +465,46 @@ function DebateRoom() {
               </p>
             </div>
 
-            {/* Discussion Area */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-5">
+            {/* Discussion Area - 3 Participants */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
               {/* User Side */}
-              <div className="card border border-blue-500/20 animate-slide-up p-4 sm:p-6" style={{ animationDelay: '200ms' }}>
-                <div className="flex items-center justify-between mb-3 sm:mb-5">
+              <div className="card border border-blue-500/20 animate-slide-up p-4 sm:p-5" style={{ animationDelay: '200ms' }}>
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="bg-gradient-to-br from-blue-500 to-cyan-600 w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <div className="bg-gradient-to-br from-blue-500 to-cyan-600 w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
                       <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white text-sm sm:text-base">Your Response</h3>
-                      <p className="text-[10px] sm:text-xs text-slate-500">Speak your argument</p>
+                      <h3 className="font-semibold text-white text-sm sm:text-base">You</h3>
+                      <p className="text-[10px] sm:text-xs text-slate-500">Participant</p>
                     </div>
                   </div>
                   {isListening && (
-                    <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20">
                       <div className="flex items-end gap-0.5">
-                        {[0, 1, 2, 3, 4].map((i) => (
+                        {[0, 1, 2].map((i) => (
                           <div 
                             key={i} 
-                            className="w-1 bg-rose-400 rounded-full animate-pulse" 
+                            className="w-0.5 bg-rose-400 rounded-full animate-pulse" 
                             style={{ 
-                              height: `${8 + (i % 3) * 5}px`,
+                              height: `${6 + (i % 3) * 4}px`,
                               animationDelay: `${i * 80}ms` 
                             }}
                           ></div>
                         ))}
                       </div>
-                      <span className="text-xs text-rose-400 font-medium hidden sm:inline">Recording</span>
+                      <span className="text-[10px] text-rose-400 font-medium">REC</span>
                     </div>
                   )}
                 </div>
                 
-                <div className="bg-[#12121f] border border-white/10 rounded-xl min-h-[120px] sm:min-h-[150px] lg:min-h-[180px] mb-3 sm:mb-4">
-                  <div className="p-3 sm:p-5">
-                    <p className="text-slate-200 leading-relaxed text-sm sm:text-[15px]">
+                <div className="bg-[#12121f] border border-white/10 rounded-xl min-h-[100px] sm:min-h-[120px] mb-3">
+                  <div className="p-3 sm:p-4">
+                    <p className="text-slate-200 leading-relaxed text-xs sm:text-sm">
                       {userTranscript || (
-                        <span className="text-slate-500 flex items-center gap-2 text-xs sm:text-sm">
-                          <Mic className="w-3 h-3 sm:w-4 sm:h-4" />
-                          Click the microphone to start speaking...
+                        <span className="text-slate-500 flex items-center gap-2 text-xs">
+                          <Mic className="w-3 h-3" />
+                          Click mic to speak...
                         </span>
                       )}
                     </p>
@@ -339,49 +514,48 @@ function DebateRoom() {
                 <button
                   onClick={isListening ? handleStopSpeaking : handleStartSpeaking}
                   disabled={!isUserTurn || isSpeaking}
-                  className={`w-full py-3 sm:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 sm:gap-3 transition-all text-sm sm:text-base ${
+                  className={`w-full py-2.5 sm:py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-xs sm:text-sm ${
                     isListening
-                      ? 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-xl shadow-rose-500/30 animate-pulse-glow'
-                      : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-xl shadow-blue-500/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none'
+                      ? 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-lg shadow-rose-500/30 animate-pulse-glow'
+                      : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none'
                   }`}
                 >
                   {isListening ? (
                     <>
-                      <MicOff className="w-4 h-4 sm:w-5 sm:h-5" />
-                      <span>Stop Recording</span>
+                      <MicOff className="w-4 h-4" />
+                      <span>Stop</span>
                     </>
                   ) : (
                     <>
-                      <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
-                      <span>Start Speaking</span>
+                      <Mic className="w-4 h-4" />
+                      <span>Speak</span>
                     </>
                   )}
                 </button>
               </div>
 
-              {/* AI Moderator Side */}
-              <div className="card border border-purple-500/20 animate-slide-up p-4 sm:p-6" style={{ animationDelay: '300ms' }}>
-                <div className="flex items-center justify-between mb-3 sm:mb-5">
+              {/* AI Agent 1 - Alex (Supportive Analyst) */}
+              <div className={`card border ${AI_PARTICIPANTS.ai1.borderColor} animate-slide-up p-4 sm:p-5`} style={{ animationDelay: '300ms' }}>
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="bg-gradient-to-br from-violet-500 to-purple-600 w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <div className={`bg-gradient-to-br ${AI_PARTICIPANTS.ai1.gradient} w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg ${AI_PARTICIPANTS.ai1.shadowColor}`}>
                       <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white text-sm sm:text-base">AI Moderator</h3>
-                      <p className="text-[10px] sm:text-xs text-slate-500">Powered by Gemini</p>
+                      <h3 className="font-semibold text-white text-sm sm:text-base">{AI_PARTICIPANTS.ai1.name}</h3>
+                      <p className="text-[10px] sm:text-xs text-slate-500">{AI_PARTICIPANTS.ai1.role}</p>
                     </div>
                   </div>
-                  {isSpeaking && (
-                    <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                      <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400 animate-pulse" />
-                      <span className="text-xs text-purple-400 font-medium hidden sm:inline">Speaking</span>
+                  {currentSpeaker === 'ai1' && isSpeaking && (
+                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${AI_PARTICIPANTS.ai1.bgColor} border ${AI_PARTICIPANTS.ai1.borderColor}`}>
+                      <Sparkles className={`w-3 h-3 ${AI_PARTICIPANTS.ai1.textColor} animate-pulse`} />
                       <div className="flex items-end gap-0.5">
-                        {[0, 1, 2, 3, 4].map((i) => (
+                        {[0, 1, 2].map((i) => (
                           <div 
                             key={i} 
-                            className="w-1 bg-purple-400 rounded-full animate-pulse" 
+                            className={`w-0.5 bg-purple-400 rounded-full animate-pulse`}
                             style={{ 
-                              height: `${8 + (i % 3) * 5}px`,
+                              height: `${6 + (i % 3) * 4}px`,
                               animationDelay: `${i * 80}ms` 
                             }}
                           ></div>
@@ -391,29 +565,92 @@ function DebateRoom() {
                   )}
                 </div>
                 
-                <div className="bg-[#12121f] border border-white/10 rounded-xl min-h-[120px] sm:min-h-[150px] lg:min-h-[180px] mb-3 sm:mb-4">
-                  <div className="p-3 sm:p-5">
-                    <p className="text-slate-200 leading-relaxed text-sm sm:text-[15px]">
-                      {moderatorResponse || (
-                        <span className="text-slate-500 flex items-center gap-2 text-xs sm:text-sm">
-                          <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
-                          AI is analyzing your point...
+                <div className="bg-[#12121f] border border-white/10 rounded-xl min-h-[100px] sm:min-h-[120px] mb-3">
+                  <div className="p-3 sm:p-4">
+                    <p className="text-slate-200 leading-relaxed text-xs sm:text-sm">
+                      {ai1Typewriter.displayedText || ai1FullResponse || (
+                        <span className="text-slate-500 flex items-center gap-2 text-xs">
+                          <Brain className="w-3 h-3" />
+                          Waiting to respond...
                         </span>
+                      )}
+                      {ai1Typewriter.isTyping && (
+                        <span className="inline-block w-1.5 h-4 bg-purple-400 ml-1 animate-pulse"></span>
                       )}
                     </p>
                   </div>
                 </div>
                 
-                {isSpeaking ? (
-                  <div className="w-full bg-white/5 rounded-full h-1.5 sm:h-2 overflow-hidden">
+                {currentSpeaker === 'ai1' && isSpeaking ? (
+                  <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
                     <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 h-full rounded-full shimmer" />
                   </div>
-                ) : moderatorResponse && (
-                  <div className="p-2 sm:p-3 rounded-xl bg-purple-500/5 border border-purple-500/20">
-                    <p className="text-[10px] sm:text-xs text-purple-300 text-center flex items-center justify-center gap-1 sm:gap-2">
-                      <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">AI is challenging you to think deeper!</span>
-                      <span className="sm:hidden">Think deeper!</span>
+                ) : ai1FullResponse && (
+                  <div className={`p-2 rounded-xl ${AI_PARTICIPANTS.ai1.bgColor} border ${AI_PARTICIPANTS.ai1.borderColor}`}>
+                    <p className={`text-[10px] sm:text-xs ${AI_PARTICIPANTS.ai1.textColor} text-center flex items-center justify-center gap-1`}>
+                      <Brain className="w-3 h-3" />
+                      Building on ideas
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* AI Agent 2 - Jordan (Critical Thinker) */}
+              <div className={`card border ${AI_PARTICIPANTS.ai2.borderColor} animate-slide-up p-4 sm:p-5`} style={{ animationDelay: '400ms' }}>
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className={`bg-gradient-to-br ${AI_PARTICIPANTS.ai2.gradient} w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg ${AI_PARTICIPANTS.ai2.shadowColor}`}>
+                      <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white text-sm sm:text-base">{AI_PARTICIPANTS.ai2.name}</h3>
+                      <p className="text-[10px] sm:text-xs text-slate-500">{AI_PARTICIPANTS.ai2.role}</p>
+                    </div>
+                  </div>
+                  {currentSpeaker === 'ai2' && isSpeaking && (
+                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${AI_PARTICIPANTS.ai2.bgColor} border ${AI_PARTICIPANTS.ai2.borderColor}`}>
+                      <Sparkles className={`w-3 h-3 ${AI_PARTICIPANTS.ai2.textColor} animate-pulse`} />
+                      <div className="flex items-end gap-0.5">
+                        {[0, 1, 2].map((i) => (
+                          <div 
+                            key={i} 
+                            className={`w-0.5 bg-emerald-400 rounded-full animate-pulse`}
+                            style={{ 
+                              height: `${6 + (i % 3) * 4}px`,
+                              animationDelay: `${i * 80}ms` 
+                            }}
+                          ></div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="bg-[#12121f] border border-white/10 rounded-xl min-h-[100px] sm:min-h-[120px] mb-3">
+                  <div className="p-3 sm:p-4">
+                    <p className="text-slate-200 leading-relaxed text-xs sm:text-sm">
+                      {ai2Typewriter.displayedText || ai2FullResponse || (
+                        <span className="text-slate-500 flex items-center gap-2 text-xs">
+                          <Brain className="w-3 h-3" />
+                          Waiting to respond...
+                        </span>
+                      )}
+                      {ai2Typewriter.isTyping && (
+                        <span className="inline-block w-1.5 h-4 bg-emerald-400 ml-1 animate-pulse"></span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                
+                {currentSpeaker === 'ai2' && isSpeaking ? (
+                  <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 h-full rounded-full shimmer" />
+                  </div>
+                ) : ai2FullResponse && (
+                  <div className={`p-2 rounded-xl ${AI_PARTICIPANTS.ai2.bgColor} border ${AI_PARTICIPANTS.ai2.borderColor}`}>
+                    <p className={`text-[10px] sm:text-xs ${AI_PARTICIPANTS.ai2.textColor} text-center flex items-center justify-center gap-1`}>
+                      <Zap className="w-3 h-3" />
+                      Challenging viewpoints
                     </p>
                   </div>
                 )}
@@ -421,7 +658,7 @@ function DebateRoom() {
             </div>
 
             {/* Controls Card */}
-            <div className="card border border-purple-500/20 animate-slide-up p-4 sm:p-6" style={{ animationDelay: '400ms' }}>
+            <div className="card border border-purple-500/20 animate-slide-up p-4 sm:p-6" style={{ animationDelay: '500ms' }}>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-3 sm:mb-4">
                 <button
                   onClick={startNewRound}
@@ -440,10 +677,10 @@ function DebateRoom() {
                   <span className="sm:hidden">End & View Feedback</span>
                 </button>
               </div>
-              <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
+              <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-emerald-500/5 border border-white/5">
                 <p className="text-sm text-slate-400 text-center flex items-center justify-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-400" />
-                  Both you and the AI share the same 90-second timer for dynamic discussion
+                  <Users className="w-4 h-4 text-blue-400" />
+                  3-way GD: You + 2 AI participants share the 90-second discussion round
                 </p>
               </div>
             </div>

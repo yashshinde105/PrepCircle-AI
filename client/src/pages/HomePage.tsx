@@ -92,7 +92,7 @@ function HomePage() {
           regular: "Master Group Discussions with ",
           gradient: "Cutting-Edge AI Technology"
         }}
-        description="Practice real-time debates with our intelligent AI moderator. Get instant feedback, improve your arguments, and ace your next interview GD round."
+        description="Practice real-time Group Discussions with intelligent AI participants. Get instant feedback, improve your communication skills, and ace your next interview GD round."
         ctaText="Start Practicing Now"
         onCtaClick={scrollToForm}
         gridOptions={{

@@ -35,14 +35,7 @@ const PORT = process.env.PORT || 3000;
 
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔗 WebSocket ready for real-time debates`);
-  
-  // Check Gemini API configuration
-  if (process.env.USE_MOCK_AI === 'false' && process.env.GEMINI_API_KEY) {
-    console.log('🤖 Gemini API enabled - will auto-detect best available model');
-  } else if (process.env.USE_MOCK_AI === 'true') {
-    console.log('🎭 Mock AI mode enabled (set USE_MOCK_AI=false to use Gemini)');
-  } else {
-    console.log('⚠️  No Gemini API key found - using Mock AI mode');
-  }
+  console.log(`🔗 WebSocket ready for real-time GD sessions`);
+  console.log('🤖 AI Agents ready (Alex & Jordan)');
+  console.log('📝 TODO: Connect your custom trained model');
 });

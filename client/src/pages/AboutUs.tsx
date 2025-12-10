@@ -23,8 +23,8 @@ const AboutUs = () => {
               About PrepCircle AI
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Revolutionizing debate practice with cutting-edge AI technology. 
-              Prepare for interviews, sharpen your arguments, and master the art of persuasion.
+              Revolutionizing Group Discussion practice with cutting-edge AI technology. 
+              Prepare for interviews, sharpen your communication, and master the art of effective discussions.
             </p>
           </div>
 
@@ -37,7 +37,7 @@ const AboutUs = () => {
             <p className="text-lg text-gray-300 leading-relaxed">
               We believe that effective communication and critical thinking are essential skills 
               for success in today's world. PrepCircle AI was created to help job seekers, students, 
-              and professionals practice group discussions and debates in a safe, AI-powered environment. 
+              and professionals practice group discussions in a safe, AI-powered environment. 
               Our platform provides real-time feedback, intelligent challenges, and comprehensive 
               performance analytics to help you improve faster.
             </p>
@@ -48,7 +48,7 @@ const AboutUs = () => {
             <FeatureCard
               icon={<Brain className="h-10 w-10" />}
               title="AI-Powered Intelligence"
-              description="Practice with an intelligent AI moderator powered by Google Gemini that adapts to your arguments and challenges your thinking."
+              description="Practice with intelligent AI agents (Alex & Jordan) that adapt to your arguments and challenge your thinking."
             />
             <FeatureCard
               icon={<Zap className="h-10 w-10" />}
@@ -83,9 +83,9 @@ const AboutUs = () => {
               How It Works
             </h2>
             <div className="grid md:grid-cols-4 gap-6">
-              <Step number="1" title="Choose Topic" description="Select from our curated list of debate topics" />
-              <Step number="2" title="Pick Your Stance" description="Decide whether you're arguing for or against" />
-              <Step number="3" title="Start Debating" description="Speak your arguments using voice or text" />
+              <Step number="1" title="Choose Topic" description="Select from our curated list of GD topics" />
+              <Step number="2" title="Enter Your Name" description="Let us know who you are" />
+              <Step number="3" title="Start Discussing" description="Speak your points using voice or text" />
               <Step number="4" title="Get Feedback" description="Receive scores and insights to improve" />
             </div>
           </div>
@@ -98,7 +98,7 @@ const AboutUs = () => {
             <div className="flex flex-wrap justify-center gap-4">
               <TechBadge>React 18</TechBadge>
               <TechBadge>TypeScript</TechBadge>
-              <TechBadge>Google Gemini AI</TechBadge>
+              <TechBadge>Custom AI Model</TechBadge>
               <TechBadge>Node.js</TechBadge>
               <TechBadge>Socket.io</TechBadge>
               <TechBadge>Web Speech API</TechBadge>

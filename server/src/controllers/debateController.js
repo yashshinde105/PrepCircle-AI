@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { debateTopics } from '../data/topics.js';
-import { generateAIResponse } from '../services/openaiService.js';
+import { generateAIResponse, generateAI2Response } from '../services/openaiService.js';
 import { calculateScore } from '../services/scoringService.js';
 
 // In-memory storage (replace with database in production)
@@ -66,7 +66,7 @@ export const submitArgument = async (req, res) => {
     // Calculate score for user's argument
     const userScore = calculateScore(argument, debate.topic, duration);
     
-    // Generate AI response
+    // Generate AI Agent 1 response (Supportive Analyst - Alex)
     const aiResponse = await generateAIResponse(
       debate.topic,
       debate.aiStance,
@@ -74,8 +74,18 @@ export const submitArgument = async (req, res) => {
       debate.rounds
     );
     
-    // Calculate score for AI's argument
+    // Generate AI Agent 2 response (Critical Thinker - Jordan)
+    const ai2Response = await generateAI2Response(
+      debate.topic,
+      debate.aiStance,
+      argument,
+      aiResponse,
+      debate.rounds
+    );
+    
+    // Calculate scores for AI arguments
     const aiScore = calculateScore(aiResponse, debate.topic, 60);
+    const ai2Score = calculateScore(ai2Response, debate.topic, 60);
     
     // Update debate
     const round = {
@@ -83,14 +93,16 @@ export const submitArgument = async (req, res) => {
       userArgument: argument,
       userScore,
       aiArgument: aiResponse,
+      ai2Argument: ai2Response,
       aiScore,
+      ai2Score,
       timestamp: new Date()
     };
     
     debate.rounds.push(round);
     debate.currentRound += 1;
     debate.userScore += userScore;
-    debate.aiScore += aiScore;
+    debate.aiScore += aiScore + ai2Score;
     
     debates.set(debateId, debate);
     
@@ -98,7 +110,13 @@ export const submitArgument = async (req, res) => {
       round,
       totalUserScore: debate.userScore,
       totalAIScore: debate.aiScore,
-      aiResponse
+      aiResponse,
+      ai2Response,
+      scores: {
+        relevance: Math.round(userScore * 0.4),
+        strength: Math.round(userScore * 0.35),
+        engagement: Math.round(userScore * 0.25)
+      }
     });
   } catch (error) {
     console.error('Error processing argument:', error);
