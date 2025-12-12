@@ -36,6 +36,6 @@ const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🔗 WebSocket ready for real-time GD sessions`);
-  console.log('🤖 AI Agents ready (Alex & Jordan)');
-  console.log('📝 TODO: Connect your custom trained model');
+  console.log('🤖 AI Agents ready (Bob & Jannet)');
+  console.log(`📡 Model API: ${process.env.MODEL_API_URL || 'Not configured'}`);
 });

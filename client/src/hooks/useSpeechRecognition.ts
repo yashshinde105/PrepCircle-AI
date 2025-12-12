@@ -48,18 +48,35 @@ export const useSpeechRecognition = (onTranscript: (text: string) => void) => {
 
   const startListening = () => {
     if (recognition) {
+      // Check if already listening to avoid InvalidStateError
+      if (isListening) {
+        console.log('🎤 Already listening, skipping start');
+        return;
+      }
       try {
         recognition.start();
         setIsListening(true);
-      } catch (error) {
-        console.error('Error starting recognition:', error);
+        console.log('🎤 Started listening');
+      } catch (error: any) {
+        // Handle case where recognition is already started
+        if (error.name === 'InvalidStateError') {
+          console.log('🎤 Recognition already active');
+          setIsListening(true);
+        } else {
+          console.error('Error starting recognition:', error);
+        }
       }
     }
   };
 
   const stopListening = () => {
     if (recognition) {
-      recognition.stop();
+      try {
+        recognition.stop();
+        console.log('🎤 Stopped listening');
+      } catch (error) {
+        console.log('🎤 Recognition already stopped');
+      }
       setIsListening(false);
     }
   };

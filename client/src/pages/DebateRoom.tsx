@@ -29,11 +29,11 @@ interface Round {
   timestamp: Date;
 }
 
-// AI Participant names and personas
+// AI Participant names and personas (matching your trained model)
 const AI_PARTICIPANTS = {
   ai1: {
-    name: 'Alex (AI)',
-    role: 'Supportive Analyst',
+    name: 'Bob (AI)',
+    role: 'GD Participant',
     color: 'purple',
     gradient: 'from-violet-500 to-purple-600',
     shadowColor: 'shadow-purple-500/30',
@@ -42,14 +42,14 @@ const AI_PARTICIPANTS = {
     textColor: 'text-purple-400'
   },
   ai2: {
-    name: 'Jordan (AI)',
-    role: 'Critical Thinker',
-    color: 'emerald',
-    gradient: 'from-emerald-500 to-teal-600',
-    shadowColor: 'shadow-emerald-500/30',
-    borderColor: 'border-emerald-500/20',
-    bgColor: 'bg-emerald-500/10',
-    textColor: 'text-emerald-400'
+    name: 'Jannet (AI)',
+    role: 'GD Participant',
+    color: 'pink',
+    gradient: 'from-pink-500 to-rose-600',
+    shadowColor: 'shadow-pink-500/30',
+    borderColor: 'border-pink-500/20',
+    bgColor: 'bg-pink-500/10',
+    textColor: 'text-pink-400'
   }
 };
 
@@ -117,11 +117,14 @@ function DebateRoom() {
   const [ai2FullResponse, setAi2FullResponse] = useState('');
   const [currentSpeaker, setCurrentSpeaker] = useState<'user' | 'ai1' | 'ai2' | null>(null);
   const [timeLeft, setTimeLeft] = useState(90);
-  const [isUserTurn, setIsUserTurn] = useState(true);
+  const [isUserTurn, setIsUserTurn] = useState(false); // Start with AI turn, not user
+  const [isAISpeaking, setIsAISpeaking] = useState(false); // Track if any AI is currently speaking
+  const [isProcessing, setIsProcessing] = useState(false); // Prevent double API calls
   const [userScore, setUserScore] = useState(0);
   const [roundNumber, setRoundNumber] = useState(1);
-  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [isTimerActive, setIsTimerActive] = useState(false); // Don't start timer until AI finishes
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [aiHasSpoken, setAiHasSpoken] = useState(false); // Track if AI has spoken this round
   const socketRef = useRef<Socket | null>(null);
   
   // Typewriter hooks for each AI
@@ -134,6 +137,140 @@ function DebateRoom() {
   
   const { speak, isSpeaking } = useSpeechSynthesis();
 
+  // Function to get AI responses and have them speak first
+  const getAIResponses = async (userInput: string = '') => {
+    // Prevent double calls
+    if (isProcessing) {
+      console.log('⚠️ Already processing, skipping...');
+      return;
+    }
+    
+    try {
+      setIsProcessing(true);
+      setIsUserTurn(false);
+      setIsTimerActive(false);
+      
+      // Reset typewriters for new responses
+      ai1Typewriter.reset();
+      ai2Typewriter.reset();
+      setAi1FullResponse('');
+      setAi2FullResponse('');
+      
+      // Call the API to get AI responses
+      const response = await axios.post(`/api/debates/${debateId}/argument`, {
+        argument: userInput,
+        duration: userInput ? (90 - timeLeft) : 0
+      });
+
+      // ============ CHECK IF DEBATE HAS ENDED ============
+      if (response.data.debateEnded) {
+        console.log('🏁 GD Session completed - redirecting to summary');
+        // Show a brief message before redirecting
+        setCurrentSpeaker(null);
+        setIsTimerActive(false);
+        
+        // Redirect to summary/feedback page after a short delay
+        setTimeout(() => {
+          navigate(`/summary/${debateId}`);
+        }, 1500);
+        return;
+      }
+
+      if (userInput) {
+        setUserScore(response.data.totalUserScore);
+        
+        // Add to rounds history
+        const newRound: Round = {
+          roundNumber: roundNumber,
+          userArgument: userInput,
+          aiArgument: response.data.aiResponse,
+          ai2Argument: response.data.ai2Response || '',
+          scores: {
+            relevance: response.data.scores?.relevance || 0,
+            strength: response.data.scores?.strength || 0,
+            engagement: response.data.scores?.engagement || 0
+          },
+          timestamp: new Date()
+        };
+        setRounds(prevRounds => [...prevRounds, newRound]);
+      }
+      
+      // ============ STEP 1: BOB (AI1) SPEAKS FIRST ============
+      console.log('🎤 Bob response:', response.data.aiResponse);
+      const bobText = response.data.aiResponse;
+      
+      setIsAISpeaking(true); // Mark AI as speaking
+      
+      if (bobText) {
+        setCurrentSpeaker('ai1');
+        
+        // Start Bob's typewriter synced with speech (150 WPM matches speech rate 1.0)
+        ai1Typewriter.typeText(bobText, 150);
+        
+        // Wait for Bob's speech to FULLY complete before continuing (male voice)
+        console.log('🔊 Bob starting to speak...');
+        await speak(bobText, 'male');
+        console.log('✅ Bob finished speaking');
+        
+        // Show Bob's full text after speech ends (for persistent display)
+        ai1Typewriter.complete(bobText);
+        setAi1FullResponse(bobText);
+        
+        // Clear current speaker
+        setCurrentSpeaker(null);
+      }
+      
+      // ============ PAUSE BETWEEN SPEAKERS ============
+      console.log('⏸️ Pausing between speakers...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // ============ STEP 2: JANNET (AI2) SPEAKS SECOND ============
+      const jannetText = response.data.ai2Response;
+      console.log('🎤 Jannet response:', jannetText);
+      
+      if (jannetText) {
+        setCurrentSpeaker('ai2');
+        
+        // Start Jannet's typewriter synced with speech
+        ai2Typewriter.typeText(jannetText, 150);
+        
+        // Wait for Jannet's speech to FULLY complete before continuing (female voice)
+        console.log('🔊 Jannet starting to speak...');
+        await speak(jannetText, 'female');
+        console.log('✅ Jannet finished speaking');
+        
+        // Show Jannet's full text after speech ends (for persistent display)
+        ai2Typewriter.complete(jannetText);
+        setAi2FullResponse(jannetText);
+        
+        // Clear current speaker
+        setCurrentSpeaker(null);
+      }
+      
+      setIsAISpeaking(false); // AI finished speaking
+      
+      // ============ NOW IT'S USER'S TURN ============
+      console.log('👤 Now it\'s user\'s turn to speak!');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setCurrentSpeaker(null);
+      setIsAISpeaking(false); // Ensure AI speaking flag is off
+      setIsProcessing(false); // Allow new API calls
+      setIsUserTurn(true);
+      setAiHasSpoken(true);
+      setTimeLeft(90); // Reset timer for user
+      setIsTimerActive(true); // Start timer for user's turn
+      console.log('✅ User turn activated - mic should be enabled now');
+      
+    } catch (error) {
+      console.error('Error getting AI responses:', error);
+      // Even on error, let user speak
+      setIsProcessing(false);
+      setIsAISpeaking(false);
+      setIsUserTurn(true);
+      setIsTimerActive(true);
+    }
+  };
+
   useEffect(() => {
     // Fetch GD session details
     fetchDebateDetails();
@@ -143,31 +280,31 @@ function DebateRoom() {
     socketRef.current.emit('join-debate', debateId);
     
     socketRef.current.on('ai-response', (data) => {
-      // Handle responses from both AI agents
-      if (data.agent === 'ai2') {
-        setAi2FullResponse(data.text);
-        setCurrentSpeaker('ai2');
-      } else {
-        setAi1FullResponse(data.text);
-        setCurrentSpeaker('ai1');
-      }
-      speak(data.text);
+      // Socket responses are handled by getAIResponses, don't speak here
+      // This just updates the UI if needed
+      console.log('📡 Socket received:', data.agent, data.text?.substring(0, 30) + '...');
     });
-
-    // Start the timer when component mounts
-    setIsTimerActive(true);
 
     return () => {
       socketRef.current?.disconnect();
     };
   }, [debateId]);
 
+  // Trigger AI to speak first when debate is loaded
   useEffect(() => {
-    // Timer countdown
-    if (isTimerActive && timeLeft > 0) {
+    if (debate && !aiHasSpoken && !isProcessing) {
+      // AI speaks first when GD starts
+      console.log('🎬 Starting GD - AI speaks first');
+      getAIResponses('');
+    }
+  }, [debate, aiHasSpoken, isProcessing]);
+
+  useEffect(() => {
+    // Timer countdown - only when it's user's turn
+    if (isTimerActive && timeLeft > 0 && isUserTurn) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && isUserTurn) {
       handleTimeUp();
     }
   }, [timeLeft, isTimerActive]);
@@ -202,99 +339,26 @@ function DebateRoom() {
     if (userTranscript) {
       submitArgument();
     } else {
-      // Move to next round even if no input
-      setTimeout(() => {
-        setRoundNumber(roundNumber + 1);
-        setUserTranscript('');
-        setAi1FullResponse('');
-        setAi2FullResponse('');
-        ai1Typewriter.reset();
-        ai2Typewriter.reset();
-        setCurrentSpeaker(null);
-        setTimeLeft(90);
-        setIsTimerActive(true);
-        setIsUserTurn(true);
-      }, 1000);
+      // User didn't speak - just reset timer and wait for them to speak
+      // Don't send anything to the model
+      setTimeLeft(90);
+      setIsTimerActive(true);
+      // Keep isUserTurn true - still waiting for user
     }
   };
 
   const submitArgument = async () => {
     if (!userTranscript.trim()) return;
-
-    try {
-      const duration = 90 - timeLeft;
-      const response = await axios.post(`/api/debates/${debateId}/argument`, {
-        argument: userTranscript,
-        duration
-      });
-
-      setUserScore(response.data.totalUserScore);
-      
-      // Add to rounds history
-      const newRound: Round = {
-        roundNumber: roundNumber,
-        userArgument: userTranscript,
-        aiArgument: response.data.aiResponse,
-        ai2Argument: response.data.ai2Response || '',
-        scores: {
-          relevance: response.data.scores?.relevance || 0,
-          strength: response.data.scores?.strength || 0,
-          engagement: response.data.scores?.engagement || 0
-        },
-        timestamp: new Date()
-      };
-      setRounds(prevRounds => [...prevRounds, newRound]);
-      
-      // AI speaks within the same round - timer keeps running
-      setIsUserTurn(false);
-      
-      // Reset typewriters for new responses
-      ai1Typewriter.reset();
-      ai2Typewriter.reset();
-      setAi1FullResponse(''); // Clear previous response
-      setAi2FullResponse(''); // Clear previous response
-      
-      // ============ STEP 1: ALEX (AI1) SPEAKS FIRST ============
-      setCurrentSpeaker('ai1');
-      
-      // Start Alex's typewriter synced with speech (150 WPM matches speech rate 1.0)
-      ai1Typewriter.typeText(response.data.aiResponse, 150);
-      
-      // Wait for Alex's speech to FULLY complete
-      await speak(response.data.aiResponse);
-      
-      // Show Alex's full text after speech ends (for persistent display)
-      ai1Typewriter.complete(response.data.aiResponse);
-      setAi1FullResponse(response.data.aiResponse);
-      
-      // ============ PAUSE BETWEEN SPEAKERS ============
-      setCurrentSpeaker(null);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // ============ STEP 2: JORDAN (AI2) SPEAKS SECOND ============
-      if (response.data.ai2Response) {
-        setCurrentSpeaker('ai2');
-        
-        // Start Jordan's typewriter synced with speech
-        ai2Typewriter.typeText(response.data.ai2Response, 150);
-        
-        // Wait for Jordan's speech to FULLY complete
-        await speak(response.data.ai2Response);
-        
-        // Show Jordan's full text after speech ends (for persistent display)
-        ai2Typewriter.complete(response.data.ai2Response);
-        setAi2FullResponse(response.data.ai2Response);
-      }
-      
-      // ============ DONE - USER'S TURN ============
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setIsUserTurn(true);
-      setCurrentSpeaker(null);
-      setUserTranscript(''); // Clear for next input
-      
-    } catch (error) {
-      console.error('Error submitting argument:', error);
-    }
+    
+    setIsTimerActive(false);
+    const userInput = userTranscript;
+    setUserTranscript(''); // Clear for next input
+    
+    // Increment round and have AI respond
+    setRoundNumber(roundNumber + 1);
+    
+    // AI speaks after user input (they will respond to what user said)
+    await getAIResponses(userInput);
   };
 
   const startNewRound = () => {
@@ -305,9 +369,8 @@ function DebateRoom() {
     ai1Typewriter.reset();
     ai2Typewriter.reset();
     setCurrentSpeaker(null);
-    setTimeLeft(90);
-    setIsTimerActive(true);
-    setIsUserTurn(true);
+    // AI speaks first for new round
+    getAIResponses('');
   };
 
   const endGD = () => {
@@ -394,24 +457,24 @@ function DebateRoom() {
                     {isListening && <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>}
                   </div>
                   
-                  {/* AI 1 - Alex */}
+                  {/* AI 1 - Bob */}
                   <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${currentSpeaker === 'ai1' ? 'bg-purple-500/20 border border-purple-500/40' : 'bg-white/5'}`}>
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
                       <Bot className="w-4 h-4 text-white" />
                     </div>
                     <span className="text-sm text-white font-medium hidden sm:inline">{AI_PARTICIPANTS.ai1.name}</span>
-                    <span className="text-sm text-white font-medium sm:hidden">Alex</span>
+                    <span className="text-sm text-white font-medium sm:hidden">Bob</span>
                     {currentSpeaker === 'ai1' && <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>}
                   </div>
                   
-                  {/* AI 2 - Jordan */}
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${currentSpeaker === 'ai2' ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-white/5'}`}>
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                  {/* AI 2 - Jannet */}
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${currentSpeaker === 'ai2' ? 'bg-pink-500/20 border border-pink-500/40' : 'bg-white/5'}`}>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
                       <Bot className="w-4 h-4 text-white" />
                     </div>
                     <span className="text-sm text-white font-medium hidden sm:inline">{AI_PARTICIPANTS.ai2.name}</span>
-                    <span className="text-sm text-white font-medium sm:hidden">Jordan</span>
-                    {currentSpeaker === 'ai2' && <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>}
+                    <span className="text-sm text-white font-medium sm:hidden">Jannet</span>
+                    {currentSpeaker === 'ai2' && <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>}
                   </div>
                 </div>
               </div>
@@ -513,7 +576,7 @@ function DebateRoom() {
                 
                 <button
                   onClick={isListening ? handleStopSpeaking : handleStartSpeaking}
-                  disabled={!isUserTurn || isSpeaking}
+                  disabled={!isUserTurn || isAISpeaking}
                   className={`w-full py-2.5 sm:py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-xs sm:text-sm ${
                     isListening
                       ? 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-lg shadow-rose-500/30 animate-pulse-glow'
@@ -523,18 +586,28 @@ function DebateRoom() {
                   {isListening ? (
                     <>
                       <MicOff className="w-4 h-4" />
-                      <span>Stop</span>
+                      <span>Stop & Submit</span>
+                    </>
+                  ) : isAISpeaking ? (
+                    <>
+                      <Mic className="w-4 h-4" />
+                      <span>AI Speaking...</span>
+                    </>
+                  ) : !isUserTurn ? (
+                    <>
+                      <Mic className="w-4 h-4" />
+                      <span>Wait...</span>
                     </>
                   ) : (
                     <>
                       <Mic className="w-4 h-4" />
-                      <span>Speak</span>
+                      <span>Speak Now</span>
                     </>
                   )}
                 </button>
               </div>
 
-              {/* AI Agent 1 - Alex (Supportive Analyst) */}
+              {/* AI Agent 1 - Bob */}
               <div className={`card border ${AI_PARTICIPANTS.ai1.borderColor} animate-slide-up p-4 sm:p-5`} style={{ animationDelay: '300ms' }}>
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -595,7 +668,7 @@ function DebateRoom() {
                 )}
               </div>
 
-              {/* AI Agent 2 - Jordan (Critical Thinker) */}
+              {/* AI Agent 2 - Jannet */}
               <div className={`card border ${AI_PARTICIPANTS.ai2.borderColor} animate-slide-up p-4 sm:p-5`} style={{ animationDelay: '400ms' }}>
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <div className="flex items-center gap-2 sm:gap-3">

@@ -44,10 +44,12 @@ Create `.env` file in the `server/` directory:
 PORT=3000
 CLIENT_URL=http://localhost:5173
 
-# TODO: Add your custom model endpoint
-# CUSTOM_MODEL_ENDPOINT=http://localhost:8000/api/generate
-# CUSTOM_MODEL_API_KEY=your_api_key_here
+# Custom AI Model Configuration
+# Set this to your ngrok/cloudflare URL from Google Colab
+MODEL_API_URL=https://your-tunnel-url.trycloudflare.com
 ```
+
+**Important:** The `MODEL_API_URL` changes every time you restart your Colab notebook. Update it with the new URL from your tunnel (ngrok or cloudflare).
 
 ### Run the Application
 
