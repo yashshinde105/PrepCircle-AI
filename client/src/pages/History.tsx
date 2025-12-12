@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Clock, Calendar, Trophy, MessageCircle, ArrowRight, Search, Filter, ChevronDown, SortAsc, SortDesc, X, User, Users } from 'lucide-react';
 
+const MODEL_API_URL = "https://charges-distribute-reproduction-barbara.trycloudflare.com";
+
 interface Message {
   speaker: string;
   message: string;
@@ -38,7 +40,7 @@ function History() {
   const fetchHistory = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/debate/sessions');
+      const response = await fetch(`${MODEL_API_URL}/debate/sessions`);
       const data = await response.json();
       setSessions(data.sessions || []);
     } catch (error) {
@@ -52,7 +54,7 @@ function History() {
   const fetchConversation = async (sessionId: string) => {
     try {
       setLoadingConversation(true);
-      const response = await fetch(`http://localhost:8000/debate/conversation/${sessionId}`);
+      const response = await fetch(`${MODEL_API_URL}/debate/conversation/${sessionId}`);
       const data = await response.json();
       setSelectedSession(data);
     } catch (error) {
