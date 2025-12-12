@@ -5,6 +5,7 @@ import DebateRoom from './pages/DebateRoom.tsx';
 import Summary from './pages/Summary.tsx';
 import Leaderboard from './pages/Leaderboard.tsx';
 import AboutUs from './pages/AboutUs.tsx';
+import History from './pages/History.tsx';
 
 // Create router with future flags to silence deprecation warnings
 const router = createBrowserRouter(
@@ -14,6 +15,7 @@ const router = createBrowserRouter(
     { path: "/debate/:debateId", element: <DebateRoom /> },
     { path: "/summary/:debateId", element: <Summary /> },
     { path: "/leaderboard", element: <Leaderboard /> },
+    { path: "/history", element: <History /> },
   ],
   {
     future: {

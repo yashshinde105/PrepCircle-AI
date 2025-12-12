@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Info, Trophy, Sparkles, Menu, X } from 'lucide-react';
+import { Home, Info, Trophy, Sparkles, Menu, X, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Navbar = () => {
@@ -75,6 +75,14 @@ const Navbar = () => {
               >
                 Leaderboard
               </NavLink>
+              
+              <NavLink 
+                to="/history" 
+                icon={<Clock className="h-4 w-4" />}
+                active={isActive('/history')}
+              >
+                History
+              </NavLink>
 
               {/* CTA Button */}
               <Link
@@ -120,6 +128,9 @@ const Navbar = () => {
             </MobileNavLink>
             <MobileNavLink to="/leaderboard" icon={<Trophy className="h-4 w-4 sm:h-5 sm:w-5" />} active={isActive('/leaderboard')}>
               Leaderboard
+            </MobileNavLink>
+            <MobileNavLink to="/history" icon={<Clock className="h-4 w-4 sm:h-5 sm:w-5" />} active={isActive('/history')}>
+              History
             </MobileNavLink>
             
             <div className="pt-3 sm:pt-4">

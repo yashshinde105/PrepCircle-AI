@@ -152,3 +152,29 @@ export const submitArgument = async (req, res) => {
     res.status(500).json({ error: 'Failed to process argument' });
   }
 };
+
+// Get all debates for history page
+export const getAllDebates = (req, res) => {
+  try {
+    const allDebates = Array.from(debates.values()).map(debate => ({
+      id: debate.id,
+      topic: debate.topic,
+      userStance: debate.userStance,
+      userName: debate.userName,
+      rounds: debate.rounds.map(round => ({
+        roundNumber: round.roundNumber,
+        userArgument: round.userArgument,
+        userScore: round.userScore,
+        aiArgument: round.aiArgument
+      })),
+      userScore: debate.userScore,
+      status: debate.status,
+      createdAt: debate.createdAt
+    }));
+    
+    res.json({ debates: allDebates });
+  } catch (error) {
+    console.error('Error fetching debates history:', error);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+};
