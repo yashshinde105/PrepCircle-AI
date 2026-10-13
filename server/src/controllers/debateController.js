@@ -2,9 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { debateTopics } from '../data/topics.js';
 import { generateAIResponse, generateAI2Response, resetModelSession, initializeModelSession } from '../services/openaiService.js';
 import { calculateScore } from '../services/scoringService.js';
-
-// In-memory storage (replace with database in production)
-const debates = new Map();
+import { Debate } from '../models/debateModel.js';
 
 export const getDebateTopics = (req, res) => {
   res.json({ topics: debateTopics });
@@ -12,83 +10,72 @@ export const getDebateTopics = (req, res) => {
 
 export const createDebate = async (req, res) => {
   const { topic, stance, userName } = req.body;
-  
-  // Reset model session for new GD
-  resetModelSession();
-  
-  // Initialize new session with the custom model
-  const modelSession = await initializeModelSession(userName || 'User', topic);
-  
-  const debateId = uuidv4();
-  const debate = {
-    id: debateId,
-    topic,
-    userStance: stance,
-    aiStance: stance === 'pro' ? 'con' : 'pro',
-    userName: userName || 'User',
-    rounds: [],
-    currentRound: 0,
-    userScore: 0,
-    aiScore: 0,
-    status: 'active',
-    createdAt: new Date(),
-    modelSessionId: modelSession?.sessionId || null
-  };
-  
-  debates.set(debateId, debate);
-  
-  res.json({ 
-    debateId, 
-    debate: {
-      id: debate.id,
-      topic: debate.topic,
-      userStance: debate.userStance,
-      aiStance: debate.aiStance
-    },
-    // Include initial AI greeting if available
-    initialMessage: modelSession?.assistantOutput || null
-  });
+
+  try {
+    resetModelSession();
+    const modelSession = await initializeModelSession(userName || 'User', topic);
+    const debate = await Debate.create({
+      id: uuidv4(),
+      topic,
+      userStance: stance,
+      aiStance: stance === 'pro' ? 'con' : 'pro',
+      userName: userName || 'User',
+      modelSessionId: modelSession?.sessionId || null
+    });
+
+    res.json({
+      debateId: debate.id,
+      debate: {
+        id: debate.id,
+        topic: debate.topic,
+        userStance: debate.userStance,
+        aiStance: debate.aiStance
+      },
+      initialMessage: modelSession?.assistantOutput || null
+    });
+  } catch (error) {
+    console.error('Error creating debate:', error.message);
+    res.status(500).json({ error: 'Failed to create debate' });
+  }
 };
 
-export const getDebateById = (req, res) => {
-  const { debateId } = req.params;
-  const debate = debates.get(debateId);
-  
-  if (!debate) {
-    return res.status(404).json({ error: 'Debate not found' });
+export const getDebateById = async (req, res) => {
+  try {
+    const debate = await Debate.findOne({ id: req.params.debateId }).lean();
+    if (!debate) {
+      return res.status(404).json({ error: 'Debate not found' });
+    }
+
+    res.json({ debate });
+  } catch (error) {
+    console.error('Error fetching debate:', error.message);
+    res.status(500).json({ error: 'Failed to fetch debate' });
   }
-  
-  res.json({ debate });
 };
 
 export const submitArgument = async (req, res) => {
   const { debateId } = req.params;
   const { argument, duration } = req.body;
-  
-  const debate = debates.get(debateId);
-  
-  if (!debate) {
-    return res.status(404).json({ error: 'Debate not found' });
-  }
-  
+
   try {
-    // Calculate score for user's argument (0 if empty - for initial AI response)
+    const debate = await Debate.findOne({ id: debateId }).lean();
+    if (!debate) {
+      return res.status(404).json({ error: 'Debate not found' });
+    }
+
     const userScore = argument ? calculateScore(argument, debate.topic, duration) : 0;
-    
-    // Generate AI Agent 1 response (Alex)
     const aiResult = await generateAIResponse(
       debate.topic,
       debate.aiStance,
-      argument || 'Start the discussion', // Default prompt if user hasn't spoken yet
+      argument || 'Start the discussion',
       debate.rounds
     );
-    
-    // Check if debate has ended
+
     if (aiResult.debateEnded) {
-      console.log('🏁 Debate completed - sending user to summary');
-      debate.status = 'completed';
-      debates.set(debateId, debate);
-      
+      await Debate.updateOne(
+        { id: debateId, status: 'active' },
+        { $set: { status: 'completed', completedAt: new Date() } }
+      );
       return res.json({
         debateEnded: true,
         round: debate.currentRound,
@@ -97,10 +84,8 @@ export const submitArgument = async (req, res) => {
         message: 'The GD session has concluded. Thank you for participating!'
       });
     }
-    
+
     const aiResponse = aiResult.response;
-    
-    // Generate AI Agent 2 response (Jannet)
     const ai2Response = await generateAI2Response(
       debate.topic,
       debate.aiStance,
@@ -108,12 +93,13 @@ export const submitArgument = async (req, res) => {
       aiResponse,
       debate.rounds
     );
-    
-    // Calculate scores for AI arguments
     const aiScore = calculateScore(aiResponse, debate.topic, 60);
     const ai2Score = ai2Response ? calculateScore(ai2Response, debate.topic, 60) : 0;
-    
-    // Update debate (only add round if user actually spoke)
+
+    let currentRound = debate.currentRound;
+    let totalUserScore = debate.userScore;
+    let totalAIScore = debate.aiScore;
+
     if (argument) {
       const round = {
         roundNumber: debate.currentRound + 1,
@@ -125,20 +111,32 @@ export const submitArgument = async (req, res) => {
         ai2Score,
         timestamp: new Date()
       };
-      
-      debate.rounds.push(round);
-      debate.currentRound += 1;
-      debate.userScore += userScore;
-      debate.aiScore += aiScore + ai2Score;
-      
-      debates.set(debateId, debate);
+      const updatedDebate = await Debate.findOneAndUpdate(
+        { id: debateId, currentRound: debate.currentRound, status: 'active' },
+        {
+          $push: { rounds: round },
+          $inc: {
+            currentRound: 1,
+            userScore,
+            aiScore: aiScore + ai2Score
+          }
+        },
+        { new: true, lean: true }
+      );
+
+      if (!updatedDebate) {
+        return res.status(409).json({ error: 'Debate was updated concurrently; please retry' });
+      }
+      currentRound = updatedDebate.currentRound;
+      totalUserScore = updatedDebate.userScore;
+      totalAIScore = updatedDebate.aiScore;
     }
-    
+
     res.json({
       debateEnded: false,
-      round: debate.currentRound,
-      totalUserScore: debate.userScore,
-      totalAIScore: debate.aiScore,
+      round: currentRound,
+      totalUserScore,
+      totalAIScore,
       aiResponse,
       ai2Response,
       scores: {
@@ -148,33 +146,39 @@ export const submitArgument = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error processing argument:', error);
+    console.error('Error processing argument:', error.message);
     res.status(500).json({ error: 'Failed to process argument' });
   }
 };
 
-// Get all debates for history page
-export const getAllDebates = (req, res) => {
+export const getAllDebates = async (req, res) => {
   try {
-    const allDebates = Array.from(debates.values()).map(debate => ({
-      id: debate.id,
-      topic: debate.topic,
-      userStance: debate.userStance,
-      userName: debate.userName,
-      rounds: debate.rounds.map(round => ({
-        roundNumber: round.roundNumber,
-        userArgument: round.userArgument,
-        userScore: round.userScore,
-        aiArgument: round.aiArgument
-      })),
-      userScore: debate.userScore,
-      status: debate.status,
-      createdAt: debate.createdAt
-    }));
-    
-    res.json({ debates: allDebates });
+    const debates = await Debate.find({})
+      .sort({ createdAt: -1 })
+      .select('id topic userStance userName rounds userScore status createdAt')
+      .lean();
+
+    res.json({
+      debates: debates.map((debate) => ({
+        id: debate.id,
+        topic: debate.topic,
+        userStance: debate.userStance,
+        userName: debate.userName,
+        rounds: debate.rounds.map((round) => ({
+          roundNumber: round.roundNumber,
+          userArgument: round.userArgument,
+          userScore: round.userScore,
+          aiArgument: round.aiArgument,
+          ai2Argument: round.ai2Argument,
+          timestamp: round.timestamp
+        })),
+        userScore: debate.userScore,
+        status: debate.status,
+        createdAt: debate.createdAt
+      }))
+    });
   } catch (error) {
-    console.error('Error fetching debates history:', error);
+    console.error('Error fetching debates history:', error.message);
     res.status(500).json({ error: 'Failed to fetch history' });
   }
 };

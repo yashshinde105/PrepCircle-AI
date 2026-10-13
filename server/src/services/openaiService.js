@@ -3,7 +3,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Custom Model API Configuration
-const MODEL_API_URL = process.env.MODEL_API_URL || 'https://your-ngrok-url.ngrok.io';
+const MODEL_API_URL = process.env.MODEL_API_URL?.trim();
+
+const getModelApiUrl = () => {
+  if (!MODEL_API_URL) {
+    const error = new Error('MODEL_API_URL is not configured');
+    error.code = 'MODEL_API_URL_MISSING';
+    throw error;
+  }
+
+  return MODEL_API_URL;
+};
+
+const isMissingModelApiUrlError = (error) => error?.code === 'MODEL_API_URL_MISSING';
 
 // Session management
 let currentSessionId = null;
@@ -14,10 +26,11 @@ let parsedJannetResponse = null;
 // Initialize a new debate session with the custom model
 export const initializeModelSession = async (userName, topic) => {
   try {
+    const modelApiUrl = getModelApiUrl();
     console.log('🚀 Initializing model session...');
-    console.log(`📡 Connecting to: ${MODEL_API_URL}/debate/start`);
+    console.log(`📡 Connecting to: ${modelApiUrl}/debate/start`);
     
-    const response = await fetch(`${MODEL_API_URL}/debate/start`, {
+    const response = await fetch(`${modelApiUrl}/debate/start`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,6 +59,9 @@ export const initializeModelSession = async (userName, topic) => {
       isComplete: data.is_complete
     };
   } catch (error) {
+    if (isMissingModelApiUrlError(error)) {
+      throw error;
+    }
     console.error('❌ Error initializing model session:', error);
     return null;
   }
@@ -54,9 +70,10 @@ export const initializeModelSession = async (userName, topic) => {
 // Send user reply and get AI responses from custom model
 const getModelResponse = async (sessionId, userReply) => {
   try {
+    const modelApiUrl = getModelApiUrl();
     console.log('📤 Sending to model:', userReply.substring(0, 50) + '...');
     
-    const response = await fetch(`${MODEL_API_URL}/debate/reply`, {
+    const response = await fetch(`${modelApiUrl}/debate/reply`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -92,6 +109,9 @@ const getModelResponse = async (sessionId, userReply) => {
       debateEnded: data.is_complete
     };
   } catch (error) {
+    if (isMissingModelApiUrlError(error)) {
+      throw error;
+    }
     console.error('❌ Error getting model response:', error);
     return null;
   }
@@ -228,6 +248,9 @@ export const generateAIResponse = async (topic, stance, userArgument, previousRo
       debateEnded: false 
     };
   } catch (error) {
+    if (isMissingModelApiUrlError(error)) {
+      throw error;
+    }
     console.error('Error:', error);
     return { 
       response: "I'd like to hear more about your thoughts on this topic.", 
