@@ -524,12 +524,6 @@ function DebateRoom() {
     <div className="min-h-screen relative overflow-hidden">
       <Navbar />
       
-      {/* Animated Background - Hidden on small screens for performance */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none hidden sm:block">
-        <div className="absolute top-20 right-20 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-violet-600/10 rounded-full blur-[100px] md:blur-[150px] animate-pulse"></div>
-        <div className="absolute bottom-20 left-20 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-indigo-600/10 rounded-full blur-[100px] md:blur-[150px] animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-      </div>
-
       <div className="pt-16 sm:pt-20 px-3 sm:px-4 lg:px-6 pb-4 sm:pb-6 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Main Content */}

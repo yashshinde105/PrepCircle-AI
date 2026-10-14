@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Award, TrendingUp, AlertCircle, Home, BarChart3, Sparkles, Trophy, Target, CheckCircle, BookOpen, Lightbulb, Clock, MessageCircle } from 'lucide-react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
-import { GlowingEffect } from '../components/ui/glowing-effect';
 
 interface Round {
   roundNumber: number;
@@ -161,12 +160,6 @@ function Summary() {
     <div className="min-h-screen relative overflow-hidden">
       <Navbar />
       
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[150px] animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '1s' }}></div>
-      </div>
-
       <div className="pt-28 pb-16 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Performance Hero Section */}
@@ -185,8 +178,8 @@ function Summary() {
                     />
                     <defs>
                       <linearGradient id="scoreRing" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#22d3ee" />
-                        <stop offset="100%" stopColor="#a78bfa" />
+                        <stop offset="0%" stopColor="#c3e879" />
+                        <stop offset="100%" stopColor="#89bda6" />
                       </linearGradient>
                     </defs>
                   </svg>
@@ -237,20 +230,10 @@ function Summary() {
                 { label: 'Highest contribution', value: contributionScores.length ? `${Math.max(...contributionScores)}/100` : '—', icon: Trophy },
                 { label: 'Category insights', value: Object.keys(categoryScores).length || '—', icon: BarChart3 },
               ].map((stat, index) => (
-                <div key={index} className="relative rounded-2xl border border-white/5 p-1.5 bg-white/[0.02] animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  <GlowingEffect
-                    spread={40}
-                    glow={true}
-                    disabled={false}
-                    proximity={64}
-                    inactiveZone={0.01}
-                    borderWidth={2}
-                  />
-                  <div className="bg-[#0f0f1a]/80 backdrop-blur-sm rounded-xl p-6">
-                    <stat.icon className="w-6 h-6 text-purple-400 mx-auto mb-3" />
-                    <div className="text-4xl font-bold gradient-text mb-1">{stat.value}</div>
-                    <div className="text-sm text-slate-500">{stat.label}</div>
-                  </div>
+                <div key={index} className="rounded-xl border border-white/[0.08] bg-[#131918] p-5 text-center animate-slide-up" style={{ animationDelay: `${index * 80}ms` }}>
+                  <stat.icon className="w-5 h-5 text-[#c3e879] mx-auto mb-3" />
+                  <div className="text-3xl font-semibold text-[#edf3e8] mb-1">{stat.value}</div>
+                  <div className="text-sm text-slate-500">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -258,7 +241,7 @@ function Summary() {
 
           {/* Visual performance analysis */}
           <div className="grid xl:grid-cols-[1.25fr_0.75fr] gap-5 mb-8">
-            <section className="card border border-cyan-500/15 bg-gradient-to-br from-[#101827] via-[#10121f] to-[#171126] animate-slide-up" aria-labelledby="progress-heading">
+            <section className="card border border-white/[0.08] animate-slide-up" aria-labelledby="progress-heading">
               <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-cyan-300 mb-2">Progress picture</p>
@@ -276,12 +259,12 @@ function Summary() {
                     <svg viewBox="0 0 600 210" className="w-full h-48 sm:h-56 overflow-visible" role="img" aria-label="Line chart of your contribution scores from 0 to 100">
                       <defs>
                         <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.28" />
-                          <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.01" />
+                          <stop offset="0%" stopColor="#c3e879" stopOpacity="0.24" />
+                          <stop offset="100%" stopColor="#89bda6" stopOpacity="0.01" />
                         </linearGradient>
                         <linearGradient id="trendStroke" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#22d3ee" />
-                          <stop offset="100%" stopColor="#a78bfa" />
+                          <stop offset="0%" stopColor="#c3e879" />
+                          <stop offset="100%" stopColor="#89bda6" />
                         </linearGradient>
                       </defs>
                       {[30, 67.5, 105, 142.5, 180].map((y, index) => (
@@ -294,7 +277,7 @@ function Summary() {
                       <path d={trendPath} fill="none" stroke="url(#trendStroke)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
                       {trendPoints.map((point, index) => (
                         <g key={`${index}-${point.score}`}>
-                          <circle cx={point.x} cy={point.y} r="8" fill="#101827" stroke="#67e8f9" strokeWidth="3" />
+                          <circle cx={point.x} cy={point.y} r="8" fill="#131918" stroke="#c3e879" strokeWidth="3" />
                           <title>{`${point.score} out of 100`}</title>
                         </g>
                       ))}

@@ -1,143 +1,115 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { ChevronRight } from "lucide-react"
+import * as React from 'react';
+import { ArrowDown, ArrowRight, AudioLines, Clock3, MessageCircle, Mic, Sparkles, Users } from 'lucide-react';
 
-interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
-  title?: string
-  subtitle?: {
-    regular: string
-    gradient: string
-  }
-  description?: string
-  ctaText?: string
-  ctaHref?: string
-  onCtaClick?: () => void
-  bottomImage?: {
-    light: string
-    dark: string
-  }
-  gridOptions?: {
-    angle?: number
-    cellSize?: number
-    opacity?: number
-    lightLineColor?: string
-    darkLineColor?: string
-  }
+interface HeroSectionProps extends React.HTMLAttributes<HTMLElement> {
+  title?: string;
+  subtitle?: { regular: string; gradient: string };
+  description?: string;
+  ctaText?: string;
+  ctaHref?: string;
+  onCtaClick?: () => void;
 }
 
-const RetroGrid = ({
-  angle = 65,
-  cellSize = 60,
-  opacity = 0.5,
-  lightLineColor = "gray",
-  darkLineColor = "gray",
-}) => {
-  const gridStyles = {
-    "--grid-angle": `${angle}deg`,
-    "--cell-size": `${cellSize}px`,
-    "--opacity": opacity,
-    "--light-line": lightLineColor,
-    "--dark-line": darkLineColor,
-  } as React.CSSProperties
-
-  return (
-    <div
-      className={cn(
-        "pointer-events-none absolute size-full overflow-hidden [perspective:200px]",
-        `opacity-[var(--opacity)]`,
-      )}
-      style={gridStyles}
-    >
-      <div className="absolute inset-0 [transform:rotateX(var(--grid-angle))]">
-        <div className="animate-grid [background-image:linear-gradient(to_right,var(--light-line)_1px,transparent_0),linear-gradient(to_bottom,var(--light-line)_1px,transparent_0)] [background-repeat:repeat] [background-size:var(--cell-size)_var(--cell-size)] [height:300vh] [inset:0%_0px] [margin-left:-200%] [transform-origin:100%_0_0] [width:600vw] dark:[background-image:linear-gradient(to_right,var(--dark-line)_1px,transparent_0),linear-gradient(to_bottom,var(--dark-line)_1px,transparent_0)]" />
-      </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent to-90% dark:from-black" />
-    </div>
-  )
-}
-
-const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
+const HeroSection = React.forwardRef<HTMLHeaderElement, HeroSectionProps>(
   (
     {
-      className,
-      title = "Build products for everyone",
-      subtitle = {
-        regular: "Designing your projects faster with ",
-        gradient: "the largest figma UI kit.",
-      },
-      description = "Sed ut perspiciatis unde omnis iste natus voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae.",
-      ctaText = "Browse courses",
-      ctaHref = "#",
+      className = '',
+      title = 'Group discussion interview practice',
+      subtitle = { regular: 'Make your point. ', gradient: 'Own the discussion.' },
+      description = 'Practice interview group discussions with two AI partners. Build your argument, respond to other viewpoints, and get feedback after each session.',
+      ctaText = 'Start a practice session',
+      ctaHref = '#practice',
       onCtaClick,
-      bottomImage,
-      gridOptions,
       ...props
     },
     ref,
-  ) => {
-    return (
-      <div className={cn("relative h-screen max-h-screen overflow-hidden", className)} ref={ref} {...props}>
-        <div className="absolute top-0 z-[0] h-full w-screen bg-purple-950/10 dark:bg-purple-950/10 bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))] dark:bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]" />
-        <section className="relative max-w-full mx-auto z-1 h-full flex items-center">
-          <RetroGrid {...gridOptions} />
-          <div className="max-w-screen-xl z-10 mx-auto px-4 gap-12 md:px-8 w-full">
-            <div className="space-y-8 max-w-5xl leading-0 lg:leading-5 mx-auto text-center">
-              <h1 className="text-base text-gray-600 dark:text-gray-400 group mx-auto px-6 py-3 bg-gradient-to-tr from-zinc-300/20 via-gray-400/20 to-transparent dark:from-zinc-300/5 dark:via-gray-400/5 border-[2px] border-black/5 dark:border-white/5 rounded-3xl w-fit">
-                {title}
-                <ChevronRight className="inline w-5 h-5 ml-2 group-hover:translate-x-1 duration-300" />
-              </h1>
-              <h2 className="text-5xl tracking-tighter bg-clip-text text-transparent mx-auto md:text-6xl lg:text-7xl bg-[linear-gradient(180deg,_#000_0%,_rgba(0,_0,_0,_0.75)_100%)] dark:bg-[linear-gradient(180deg,_#FFF_0%,_rgba(255,_255,_255,_0.00)_202.08%)]">
-                {subtitle.regular}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-300 dark:to-orange-200">
-                  {subtitle.gradient}
-                </span>
-              </h2>
-              <p className="max-w-3xl mx-auto text-lg md:text-xl text-gray-600 dark:text-gray-300">
-                {description}
-              </p>
-              <div className="items-center justify-center gap-x-3 space-y-3 sm:flex sm:space-y-0 pt-4">
-                <span className="relative inline-block overflow-hidden rounded-full p-[2px]">
-                  <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
-                  <div className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-white dark:bg-gray-950 text-base font-medium backdrop-blur-3xl">
-                    {onCtaClick ? (
-                      <button
-                        onClick={onCtaClick}
-                        className="inline-flex rounded-full text-center group items-center w-full justify-center bg-gradient-to-tr from-zinc-300/20 via-purple-400/30 to-transparent dark:from-zinc-300/5 dark:via-purple-400/20 text-gray-900 dark:text-white border-input border-[1px] hover:bg-gradient-to-tr hover:from-zinc-300/30 hover:via-purple-400/40 hover:to-transparent dark:hover:from-zinc-300/10 dark:hover:via-purple-400/30 transition-all sm:w-auto py-4 px-10 text-lg"
-                      >
-                        {ctaText}
-                      </button>
-                    ) : (
-                      <a
-                        href={ctaHref}
-                        className="inline-flex rounded-full text-center group items-center w-full justify-center bg-gradient-to-tr from-zinc-300/20 via-purple-400/30 to-transparent dark:from-zinc-300/5 dark:via-purple-400/20 text-gray-900 dark:text-white border-input border-[1px] hover:bg-gradient-to-tr hover:from-zinc-300/30 hover:via-purple-400/40 hover:to-transparent dark:hover:from-zinc-300/10 dark:hover:via-purple-400/30 transition-all sm:w-auto py-4 px-10 text-lg"
-                      >
-                        {ctaText}
-                      </a>
-                    )}
-                  </div>
-                </span>
+  ) => (
+    <header
+      ref={ref}
+      className={`relative isolate overflow-hidden border-b border-white/[0.07] ${className}`}
+      {...props}
+    >
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_78%_42%,rgba(59,130,246,.13),transparent_30%),radial-gradient(ellipse_at_72%_65%,rgba(189,231,102,.08),transparent_32%),linear-gradient(180deg,#0c1118_0%,#0a0e13_100%)]" />
+      <div className="mx-auto grid min-h-[680px] max-w-7xl items-center gap-10 px-5 pb-16 pt-28 sm:px-8 lg:min-h-[760px] lg:grid-cols-[1fr_1fr] lg:gap-8 lg:px-10 lg:pt-24">
+        <div className="max-w-2xl">
+          <div className="mb-7 inline-flex items-center gap-2.5 rounded-full border border-[#8ee5d0]/20 bg-[#8ee5d0]/[0.07] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[.16em] text-[#a9ecdc]">
+            <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#8ee5d0] opacity-40" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[#8ee5d0]" /></span>
+            {title}
+          </div>
+          <h1 className="max-w-3xl text-[2.8rem] font-semibold leading-[1.02] tracking-[-0.055em] text-[#f3f5ef] sm:text-6xl lg:text-[4.2rem]">
+            {subtitle.regular}
+            <span className="text-[#c3e879]">{subtitle.gradient}</span>
+          </h1>
+          <p className="mt-6 max-w-xl text-base leading-7 text-[#a5b0bd] sm:text-lg sm:leading-8">
+            {description}
+          </p>
+          <div className="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+            {onCtaClick ? (
+              <button onClick={onCtaClick} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#c3e879] px-5 py-3 text-sm font-semibold text-[#17200d] shadow-[0_8px_24px_rgba(195,232,121,.12)] transition hover:bg-[#d1ef93] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c3e879]">
+                {ctaText}<ArrowDown className="h-4 w-4" />
+              </button>
+            ) : (
+              <a href={ctaHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#c3e879] px-5 py-3 text-sm font-semibold text-[#17200d] shadow-[0_8px_24px_rgba(195,232,121,.12)] transition hover:bg-[#d1ef93]">
+                {ctaText}<ArrowRight className="h-4 w-4" />
+              </a>
+            )}
+            <span className="text-sm text-[#8996a4]">Choose a 5, 10, or 15 minute practice</span>
+          </div>
+          <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-[#9aa8b6]">
+            <span className="inline-flex items-center gap-2"><Mic className="h-4 w-4 text-[#8ee5d0]" />Speak or type</span>
+            <span className="inline-flex items-center gap-2"><MessageCircle className="h-4 w-4 text-[#8ee5d0]" />Real back-and-forth</span>
+            <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-[#8ee5d0]" />Feedback that helps</span>
+          </div>
+        </div>
+
+        <div className="relative mx-auto w-full max-w-[650px] lg:ml-auto">
+          <div className="absolute inset-[7%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(80,170,190,.2),rgba(71,104,207,.1)_42%,transparent_72%)] blur-3xl" />
+          <div className="absolute inset-[8%] rounded-[2.5rem] border border-[#8ee5d0]/10 bg-[linear-gradient(145deg,rgba(23,40,51,.5),rgba(11,17,25,.15)_55%,rgba(73,93,150,.12))] shadow-[inset_0_1px_0_rgba(255,255,255,.05)]" />
+          <div className="absolute left-[12%] top-[10%] h-[70%] w-[70%] rounded-full border border-dashed border-[#8ee5d0]/[0.12]" />
+          <div className="absolute right-[7%] top-[18%] h-[48%] w-[48%] rounded-full border border-white/[0.06]" />
+
+          <div className="relative z-20 flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-7">
+            <div className="rounded-2xl border border-white/10 bg-[#0b1219]/75 px-4 py-3 shadow-xl backdrop-blur-xl sm:px-5">
+              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.16em] text-[#8ee5d0] sm:text-[11px]">
+                <Users className="h-3.5 w-3.5" /> Interview GD
+              </div>
+              <p className="mt-1.5 text-sm font-medium text-white sm:text-base">Topic: a changing world</p>
+            </div>
+            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#0b1219]/75 px-3.5 py-2 text-xs font-medium text-[#cbd5df] shadow-xl backdrop-blur-xl sm:px-4 sm:text-sm">
+              <Clock3 className="h-4 w-4 text-[#8ee5d0]" /> 5, 10, or 15 min
+            </div>
+          </div>
+
+          <img
+            src="/hero-cutout.png"
+            alt="A candidate practicing a group discussion with two AI participants"
+            width="1800"
+            height="890"
+            fetchPriority="high"
+            decoding="async"
+            className="relative z-10 -mt-2 block h-auto w-full drop-shadow-[0_24px_34px_rgba(0,0,0,.3)] sm:-mt-5"
+          />
+
+          <div className="relative z-20 mx-4 -mt-5 mb-5 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0b1219]/85 p-3 shadow-2xl backdrop-blur-xl sm:mx-8 sm:-mt-8 sm:mb-8 sm:p-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#8ee5d0]/10 text-[#8ee5d0]"><AudioLines className="h-5 w-5" /></div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[.15em] text-[#8ee5d0]">Live discussion</p>
+                <p className="mt-0.5 truncate text-sm font-medium text-white sm:text-base">Make a point. Build on theirs.</p>
               </div>
             </div>
-            {bottomImage && (
-              <div className="mt-16 mx-10 relative z-10">
-                <img
-                  src={bottomImage.light}
-                  className="w-full shadow-lg rounded-lg border border-gray-200 dark:hidden"
-                  alt="Dashboard preview"
-                />
-                <img
-                  src={bottomImage.dark}
-                  className="hidden w-full shadow-lg rounded-lg border border-gray-800 dark:block"
-                  alt="Dashboard preview"
-                />
-              </div>
-            )}
+            <div className="hidden shrink-0 items-center -space-x-2 sm:flex" aria-label="You, Bob, and Jannet">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#101820] bg-[#c3e879] text-[10px] font-bold text-[#17200d]">YOU</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#101820] bg-[#6e93c8] text-xs font-semibold text-white">B</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#101820] bg-[#a786ca] text-xs font-semibold text-white">J</span>
+            </div>
           </div>
-        </section>
+        </div>
       </div>
-    )
-  },
-)
-HeroSection.displayName = "HeroSection"
+    </header>
+  ),
+);
 
-export { HeroSection }
+HeroSection.displayName = 'HeroSection';
+
+export { HeroSection };

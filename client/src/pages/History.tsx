@@ -14,6 +14,7 @@ import {
   User,
   Users
 } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 interface Message {
   speaker: string;
@@ -272,7 +273,8 @@ function History() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="min-h-screen bg-[#0c1010]">
+        <Navbar />
         <div className="flex h-screen items-center justify-center">
           <div className="text-center">
             <div className="relative mb-6">
@@ -294,13 +296,8 @@ function History() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      {/* Background decorations */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-40 h-96 w-96 rounded-full bg-violet-600/10 blur-[120px]" />
-        <div className="absolute -right-40 bottom-40 h-96 w-96 rounded-full bg-indigo-600/10 blur-[120px]" />
-      </div>
-
+    <div className="relative min-h-screen overflow-hidden bg-[#0c1010]">
+      <Navbar />
       <div className="relative z-10 px-4 pb-16 pt-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
           {/* Header */}
