@@ -15,6 +15,9 @@ interface Debate {
   aiStance: string;
   currentRound: number;
   initialMessage?: string;
+  durationMinutes?: number;
+  sessionStartedAt?: string;
+  sessionExpiresAt?: string;
 }
 
 interface DetailedScores {
@@ -63,6 +66,12 @@ const AI_PARTICIPANTS = {
     bgColor: 'bg-pink-500/10',
     textColor: 'text-pink-400'
   }
+};
+
+const formatCountdown = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 };
 
 // Custom hook for typewriter effect synced with speech
@@ -129,9 +138,11 @@ function DebateRoom() {
   const [ai2FullResponse, setAi2FullResponse] = useState('');
   const [currentSpeaker, setCurrentSpeaker] = useState<'user' | 'ai1' | 'ai2' | null>(null);
   const [timeLeft, setTimeLeft] = useState(90);
+  const [sessionSecondsLeft, setSessionSecondsLeft] = useState<number | null>(null);
   const [isUserTurn, setIsUserTurn] = useState(false); // Start with AI turn, not user
   const [isAISpeaking, setIsAISpeaking] = useState(false); // Track if any AI is currently speaking
   const [isProcessing, setIsProcessing] = useState(false); // Prevent double API calls
+  const [isEnding, setIsEnding] = useState(false);
   const [userScore, setUserScore] = useState(0);
   const [roundNumber, setRoundNumber] = useState(1);
   const [isTimerActive, setIsTimerActive] = useState(false); // Don't start timer until AI finishes
@@ -139,6 +150,9 @@ function DebateRoom() {
   const [aiHasSpoken, setAiHasSpoken] = useState(false); // Track if AI has spoken this round
   const [liveDetailedScores, setLiveDetailedScores] = useState<DetailedScores | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const isProcessingRef = useRef(false);
+  const sessionEndPendingRef = useRef(false);
+  const finishStartedRef = useRef(false);
   
   // Typewriter hooks for each AI
   const ai1Typewriter = useTypewriter();
@@ -155,7 +169,7 @@ function DebateRoom() {
     (transcript) => setUserTranscript(transcript)
   );
   
-  const { speak, isSpeaking } = useSpeechSynthesis();
+  const { speak, stop: stopSpeech, isSpeaking } = useSpeechSynthesis();
 
   // Function to get AI responses and have them speak first
   const getAIResponses = async (userInput: string = '') => {
@@ -166,6 +180,7 @@ function DebateRoom() {
     }
     
     try {
+      isProcessingRef.current = true;
       setIsProcessing(true);
       setIsUserTurn(false);
       setIsTimerActive(false);
@@ -185,6 +200,12 @@ function DebateRoom() {
       // ============ CHECK IF DEBATE HAS ENDED ============
       if (response.data.debateEnded) {
         console.log('🏁 GD Session completed - redirecting to summary');
+        isProcessingRef.current = false;
+        setIsProcessing(false);
+        if (sessionEndPendingRef.current) {
+          await endGD();
+          return;
+        }
         // Show a brief message before redirecting
         setCurrentSpeaker(null);
         setIsTimerActive(false);
@@ -270,7 +291,12 @@ function DebateRoom() {
       await new Promise(resolve => setTimeout(resolve, 500));
       setCurrentSpeaker(null);
       setIsAISpeaking(false); // Ensure AI speaking flag is off
+      isProcessingRef.current = false;
       setIsProcessing(false); // Allow new API calls
+      if (sessionEndPendingRef.current) {
+        await endGD();
+        return;
+      }
       setIsUserTurn(true);
       setAiHasSpoken(true);
       setTimeLeft(90); // Reset timer for user
@@ -279,6 +305,11 @@ function DebateRoom() {
       
     } catch (error) {
       console.error('Error getting AI responses:', error);
+      isProcessingRef.current = false;
+      if (sessionEndPendingRef.current) {
+        await endGD();
+        return;
+      }
       // Even on error, let user speak
       setIsProcessing(false);
       setIsAISpeaking(false);
@@ -328,13 +359,20 @@ function DebateRoom() {
       setIsTimerActive(false);
       setIsAISpeaking(true);
       setCurrentSpeaker('ai1');
+      isProcessingRef.current = true;
+      setIsProcessing(true);
       ai1Typewriter.typeText(opening, 150);
       void speak(opening, 'male').then(() => {
         ai1Typewriter.complete(opening);
         setAi1FullResponse(opening);
         setCurrentSpeaker(null);
         setIsAISpeaking(false);
+        isProcessingRef.current = false;
         setIsProcessing(false);
+        if (sessionEndPendingRef.current) {
+          void endGD();
+          return;
+        }
         setIsUserTurn(true);
         setTimeLeft(90);
         setIsTimerActive(true);
@@ -394,7 +432,7 @@ function DebateRoom() {
   };
 
   const submitArgument = async () => {
-    if (!userTranscript.trim()) return;
+    if (isEnding || sessionEndPendingRef.current || !userTranscript.trim()) return;
     
     setIsTimerActive(false);
     const userInput = userTranscript;
@@ -407,19 +445,25 @@ function DebateRoom() {
     await getAIResponses(userInput);
   };
 
-  const startNewRound = () => {
-    setRoundNumber(roundNumber + 1);
-    setUserTranscript('');
-    setAi1FullResponse('');
-    setAi2FullResponse('');
-    ai1Typewriter.reset();
-    ai2Typewriter.reset();
-    setCurrentSpeaker(null);
-    // AI speaks first for new round
-    getAIResponses('');
-  };
+  const endGD = useCallback(async () => {
+    if (finishStartedRef.current) return;
+    if (isProcessingRef.current) {
+      sessionEndPendingRef.current = true;
+      setIsEnding(true);
+      setIsTimerActive(false);
+      setIsUserTurn(false);
+      stopListening();
+      stopSpeech();
+      return;
+    }
 
-  const endGD = async () => {
+    finishStartedRef.current = true;
+    sessionEndPendingRef.current = false;
+    setIsEnding(true);
+    setIsTimerActive(false);
+    setIsUserTurn(false);
+    stopListening();
+    stopSpeech();
     try {
       // Call the finish endpoint to get the final report from Colab
       await axios.post(`/api/debates/${debateId}/finish`);
@@ -427,7 +471,36 @@ function DebateRoom() {
       console.error('Error finishing debate:', error);
     }
     navigate(`/summary/${debateId}`);
-  };
+  }, [debateId, navigate, stopListening, stopSpeech]);
+
+  useEffect(() => {
+    if (!debate) return;
+
+    const durationMinutes = debate.durationMinutes || 10;
+    const storedExpiry = debate.sessionExpiresAt ? Date.parse(debate.sessionExpiresAt) : NaN;
+    const sessionStart = Date.parse(debate.sessionStartedAt || '');
+    const expiry = Number.isFinite(storedExpiry)
+      ? storedExpiry
+      : (Number.isFinite(sessionStart) ? sessionStart : Date.now()) + durationMinutes * 60 * 1000;
+
+    const updateRemaining = () => {
+      const seconds = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
+      setSessionSecondsLeft(seconds);
+      if (seconds === 0 && !finishStartedRef.current && !sessionEndPendingRef.current) {
+        sessionEndPendingRef.current = true;
+        setIsEnding(true);
+        setIsTimerActive(false);
+        setIsUserTurn(false);
+        stopListening();
+        stopSpeech();
+        if (!isProcessingRef.current) void endGD();
+      }
+    };
+
+    updateRemaining();
+    const timer = window.setInterval(updateRemaining, 1000);
+    return () => window.clearInterval(timer);
+  }, [debate, endGD, stopListening, stopSpeech]);
 
   if (!debate) {
     return (
@@ -471,10 +544,10 @@ function DebateRoom() {
                     </div>
                     <div className="min-w-0">
                       <h1 className="text-base sm:text-lg lg:text-xl font-bold text-white leading-tight truncate">{debate.topic}</h1>
-                      <div className="flex items-center gap-2 sm:gap-3 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
                         <span className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-slate-400">
                           <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-500/50"></div>
-                          Round {roundNumber}
+                          Discussion in progress
                         </span>
                         <span className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-slate-400">
                           <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-400" />
@@ -483,6 +556,10 @@ function DebateRoom() {
                         <span className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-slate-400">
                           <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
                           Live GD
+                        </span>
+                        <span className={`flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm ${sessionSecondsLeft !== null && sessionSecondsLeft <= 60 ? 'text-rose-300' : 'text-emerald-300'}`} aria-live="polite">
+                          <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          {isEnding ? 'Ending session…' : `Session ends in ${formatCountdown(sessionSecondsLeft ?? (debate.durationMinutes || 10) * 60)}`}
                         </span>
                       </div>
                     </div>
@@ -568,13 +645,13 @@ function DebateRoom() {
                 {isTimerActive ? (
                   <>
                     <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-500/50"></span>
-                    <span className="hidden sm:inline">Discussion round in progress</span>
+                    <span className="hidden sm:inline">Your contribution time</span>
                     <span className="sm:hidden">In progress</span>
                   </>
                 ) : (
                   <>
                     <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-slate-500 rounded-full"></span>
-                    Round paused
+                    Discussion paused
                   </>
                 )}
               </p>
@@ -638,7 +715,7 @@ function DebateRoom() {
                 
                 <button
                   onClick={isListening ? handleStopSpeaking : handleStartSpeaking}
-                  disabled={!isUserTurn || isAISpeaking || !isSpeechSupported}
+                  disabled={!isUserTurn || isAISpeaking || !isSpeechSupported || isEnding}
                   className={`w-full py-2.5 sm:py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-xs sm:text-sm ${
                     isListening
                       ? 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-lg shadow-rose-500/30 animate-pulse-glow'
@@ -682,7 +759,7 @@ function DebateRoom() {
                 {!isListening && (
                   <button
                     onClick={submitArgument}
-                    disabled={!isUserTurn || isAISpeaking || !userTranscript.trim()}
+                    disabled={!isUserTurn || isAISpeaking || !userTranscript.trim() || isEnding}
                     className="mt-2 w-full py-2.5 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white shadow-lg shadow-emerald-500/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     Submit Typed Response
@@ -817,26 +894,19 @@ function DebateRoom() {
             <div className="card border border-purple-500/20 animate-slide-up p-4 sm:p-6" style={{ animationDelay: '500ms' }}>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-3 sm:mb-4">
                 <button
-                  onClick={startNewRound}
-                  disabled={timeLeft > 0 && isTimerActive}
-                  className="btn-primary flex items-center justify-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Zap className="w-4 h-4" />
-                  Start New Round
-                </button>
-                <button
                   onClick={endGD}
+                  disabled={isEnding}
                   className="btn-secondary flex items-center justify-center gap-2 text-sm sm:text-base py-2.5 sm:py-3"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span className="hidden sm:inline">End Session & View Feedback</span>
-                  <span className="sm:hidden">End & View Feedback</span>
+                  <span className="hidden sm:inline">{isEnding ? 'Ending Session…' : 'End Session & View Feedback'}</span>
+                  <span className="sm:hidden">{isEnding ? 'Ending…' : 'End & View Feedback'}</span>
                 </button>
               </div>
               <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-emerald-500/5 border border-white/5">
                 <p className="text-sm text-slate-400 text-center flex items-center justify-center gap-2">
                   <Users className="w-4 h-4 text-blue-400" />
-                  3-way GD: You + 2 AI participants share the 90-second discussion round
+                  3-way GD: You + 2 AI participants · 90 seconds for each speaking turn
                 </p>
               </div>
 
@@ -845,7 +915,7 @@ function DebateRoom() {
                 <div className="mt-4 p-4 rounded-xl bg-white/[0.02] border border-purple-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Sparkles className="w-4 h-4 text-purple-400" />
-                    <span className="text-sm font-medium text-purple-300">Live Score Breakdown (Latest Round)</span>
+                    <span className="text-sm font-medium text-purple-300">Live Score Breakdown · Latest Contribution</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
@@ -874,7 +944,7 @@ function DebateRoom() {
           
           {/* History Sidebar */}
           <div className="hidden lg:block w-80">
-            <HistorySidebar rounds={rounds} currentRound={roundNumber} />
+            <HistorySidebar rounds={rounds} />
           </div>
         </div>
       </div>

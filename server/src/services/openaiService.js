@@ -32,7 +32,7 @@ let currentSessionId = null;
 
 // Initialize a new debate session with the Colab FastAPI backend
 // Colab endpoint: POST /api/sessions
-export const initializeModelSession = async (userName, topic) => {
+export const initializeModelSession = async (userName, topic, durationMinutes = 10) => {
   try {
     const modelApiUrl = getModelApiUrl();
     console.log('🚀 Initializing model session...');
@@ -46,7 +46,7 @@ export const initializeModelSession = async (userName, topic) => {
       body: JSON.stringify({
         user_name: userName || 'Student',
         topic: topic,
-        duration_minutes: 10,
+        duration_minutes: durationMinutes,
       }),
     });
 

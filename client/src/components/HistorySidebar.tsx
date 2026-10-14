@@ -4,6 +4,7 @@ interface Round {
   roundNumber: number;
   userArgument: string;
   aiArgument: string;
+  ai2Argument?: string;
   scores: {
     relevance: number;
     strength: number;
@@ -14,10 +15,9 @@ interface Round {
 
 interface HistorySidebarProps {
   rounds: Round[];
-  currentRound: number;
 }
 
-const HistorySidebar = ({ rounds, currentRound }: HistorySidebarProps) => {
+const HistorySidebar = ({ rounds }: HistorySidebarProps) => {
   if (rounds.length === 0) {
     return (
       <div className="glass-effect rounded-xl p-4 border border-purple-500/20 h-full">
@@ -27,7 +27,7 @@ const HistorySidebar = ({ rounds, currentRound }: HistorySidebarProps) => {
         </h2>
         <div className="text-center py-8 text-gray-400">
           <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No rounds yet</p>
+          <p className="text-sm">No contributions yet</p>
           <p className="text-xs mt-1">History will appear here</p>
         </div>
       </div>
@@ -44,18 +44,18 @@ const HistorySidebar = ({ rounds, currentRound }: HistorySidebarProps) => {
       </h2>
       
       <div className="space-y-3">
-        {rounds.map((round) => (
+        {rounds.map((round, index) => (
           <div
-            key={round.roundNumber}
+            key={`${round.timestamp}-${index}`}
             className={`glass-effect rounded-lg p-3 border transition-all duration-200 ${
-              round.roundNumber === currentRound
+              index === rounds.length - 1
                 ? 'border-purple-500/50 bg-purple-500/5'
                 : 'border-purple-500/10 hover:border-purple-500/30'
             }`}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-purple-400">
-                Round {round.roundNumber}
+                Your contribution
               </span>
               <span className="text-[10px] text-gray-400">
                 {new Date(round.timestamp).toLocaleTimeString([], { 
@@ -84,12 +84,26 @@ const HistorySidebar = ({ rounds, currentRound }: HistorySidebarProps) => {
                 <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-5 h-5 rounded-lg flex items-center justify-center">
                   <Bot className="h-3 w-3 text-white" />
                 </div>
-                <span className="text-[10px] font-semibold text-purple-300">AI Moderator</span>
+                <span className="text-[10px] font-semibold text-purple-300">Bob</span>
               </div>
               <p className="text-[10px] text-gray-300 line-clamp-2 pl-4">
                 {round.aiArgument}
               </p>
             </div>
+
+            {round.ai2Argument && (
+              <div className="mb-2">
+                <div className="flex items-center gap-1 mb-1">
+                  <div className="bg-gradient-to-br from-pink-500 to-rose-600 w-5 h-5 rounded-lg flex items-center justify-center">
+                    <Bot className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-pink-300">Jannet</span>
+                </div>
+                <p className="text-[10px] text-gray-300 line-clamp-2 pl-4">
+                  {round.ai2Argument}
+                </p>
+              </div>
+            )}
 
             {/* Scores */}
             <div className="grid grid-cols-3 gap-1 mt-2 pt-2 border-t border-purple-500/10">

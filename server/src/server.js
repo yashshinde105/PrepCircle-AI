@@ -11,9 +11,12 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+const socketCorsOrigin = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map((v) => v.trim()).filter(Boolean)
+  : '*';
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: socketCorsOrigin,
     methods: ['GET', 'POST']
   }
 });

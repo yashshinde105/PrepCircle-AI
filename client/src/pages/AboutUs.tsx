@@ -53,17 +53,17 @@ const AboutUs = () => {
             <FeatureCard
               icon={<Zap className="h-10 w-10" />}
               title="Real-Time Feedback"
-              description="Get instant scoring on relevance, strength, and engagement. Know exactly where you stand after each round."
+              description="Get instant scoring on relevance, strength, and engagement after each contribution."
             />
             <FeatureCard
               icon={<Trophy className="h-10 w-10" />}
               title="Performance Tracking"
-              description="Track your progress over time with detailed analytics, leaderboards, and round-by-round breakdowns."
+              description="Track your progress over time with detailed analytics, leaderboards, and contribution-by-contribution feedback."
             />
             <FeatureCard
               icon={<Users className="h-10 w-10" />}
               title="Interview Preparation"
-              description="Specifically designed for GD (Group Discussion) rounds in job interviews with realistic scenarios."
+              description="Designed for job interview group discussions with realistic scenarios."
             />
             <FeatureCard
               icon={<Sparkles className="h-10 w-10" />}

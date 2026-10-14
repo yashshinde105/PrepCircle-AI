@@ -88,7 +88,7 @@ function History() {
   const [filterStatus, setFilterStatus] = useState<
     'all' | 'completed' | 'active'
   >('all');
-  const [sortBy, setSortBy] = useState<'date' | 'topic' | 'rounds'>('date');
+  const [sortBy, setSortBy] = useState<'date' | 'topic' | 'contributions'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [dateFilter, setDateFilter] = useState<
     'all' | 'today' | 'week' | 'month'
@@ -225,7 +225,7 @@ function History() {
             comparison = a.topic.localeCompare(b.topic);
             break;
 
-          case 'rounds':
+          case 'contributions':
             comparison = a.roundNumber - b.roundNumber;
             break;
         }
@@ -265,7 +265,7 @@ function History() {
     (session) => session.isComplete
   ).length;
 
-  const totalRounds = sessions.reduce(
+  const totalContributions = sessions.reduce(
     (total, session) => total + session.roundNumber,
     0
   );
@@ -341,9 +341,9 @@ function History() {
             <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm">
               <Calendar className="mx-auto mb-2 h-5 w-5 text-purple-400" />
               <div className="text-xl font-bold text-white">
-                {totalRounds}
+                {totalContributions}
               </div>
-              <div className="text-xs text-slate-500">Total Rounds</div>
+              <div className="text-xs text-slate-500">Total Contributions</div>
             </div>
           </div>
 
@@ -384,7 +384,7 @@ function History() {
 
                 {showSortDropdown && (
                   <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-xl border border-white/10 bg-slate-900 shadow-xl">
-                    {(['date', 'topic', 'rounds'] as const).map((option) => (
+                    {(['date', 'topic', 'contributions'] as const).map((option) => (
                       <button
                         key={option}
                         onClick={() => {
@@ -545,7 +545,7 @@ function History() {
 
                                 <span className="flex items-center gap-1.5">
                                   <MessageCircle className="h-4 w-4" />
-                                  {session.roundNumber} rounds
+                                  {session.roundNumber} contributions
                                 </span>
 
                                 <span className="flex items-center gap-1.5">
@@ -664,7 +664,7 @@ function History() {
             <div className="border-t border-white/10 bg-slate-950/50 p-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-400">
-                  {selectedSession.roundNumber} rounds •{' '}
+                  {selectedSession.roundNumber} contributions •{' '}
                   {selectedSession.isComplete ? 'Completed' : 'In Progress'}
                 </span>
 

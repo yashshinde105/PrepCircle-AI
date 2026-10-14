@@ -10,9 +10,16 @@ export const getDebateTopics = (req, res) => {
 
 export const createDebate = async (req, res) => {
   const { topic, stance, userName } = req.body;
+  const durationMinutes = Number(req.body.durationMinutes ?? 10);
+
+  if (![5, 10, 15].includes(durationMinutes)) {
+    return res.status(400).json({ error: 'Session duration must be 5, 10, or 15 minutes.' });
+  }
 
   try {
-    const modelSession = await initializeModelSession(userName || 'User', topic);
+    const sessionStartedAt = new Date();
+    const sessionExpiresAt = new Date(sessionStartedAt.getTime() + durationMinutes * 60 * 1000);
+    const modelSession = await initializeModelSession(userName || 'User', topic, durationMinutes);
     const debate = await Debate.create({
       id: uuidv4(),
       topic,
@@ -20,6 +27,9 @@ export const createDebate = async (req, res) => {
       aiStance: stance === 'pro' ? 'con' : 'pro',
       userName: userName || 'User',
       initialMessage: modelSession?.bobResponse || '',
+      durationMinutes,
+      sessionStartedAt,
+      sessionExpiresAt,
       modelSessionId: modelSession?.sessionId || null
     });
 

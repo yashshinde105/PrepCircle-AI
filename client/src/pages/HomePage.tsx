@@ -24,6 +24,7 @@ function HomePage() {
   ]);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [userName, setUserName] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState(10);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const formSectionRef = useRef<HTMLDivElement>(null);
@@ -53,7 +54,8 @@ function HomePage() {
       const response = await axios.post('/api/debates/create', {
         topic: selectedTopic.title,
         stance: 'participant',  // No pro/con for GD
-        userName
+        userName,
+        durationMinutes,
       });
       navigate(`/debate/${response.data.debateId}`);
     } catch (error) {
@@ -84,7 +86,7 @@ function HomePage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       <Navbar />
-      
+
       {/* Hero Section */}
       <HeroSection
         title="AI-Powered Interview Preparation"
@@ -103,7 +105,7 @@ function HomePage() {
           darkLineColor: "#4f46e5",
         }}
       />
-      
+
       {/* Features and Form Section */}
       <div className="py-10 sm:py-16 lg:py-20 px-3 sm:px-4 lg:px-8 relative" ref={formSectionRef}>
         {/* Background decorations - hidden on mobile for performance */}
@@ -159,7 +161,7 @@ function HomePage() {
           <div className="relative animate-scale-in max-w-4xl mx-auto">
             {/* Glow effect behind form - hidden on mobile for performance */}
             <div className="absolute -inset-1 bg-gradient-to-r from-violet-600/30 via-purple-600/30 to-indigo-600/30 rounded-2xl sm:rounded-3xl blur-xl opacity-70 hidden sm:block"></div>
-            
+
             <div className="relative bg-[#0d0d1a] rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 border border-white/10 shadow-2xl">
               {/* Form Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 sm:mb-8 gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-white/10">
@@ -172,7 +174,7 @@ function HomePage() {
                   <span className="text-[10px] sm:text-xs font-semibold text-emerald-400 uppercase tracking-wide">AI Ready</span>
                 </div>
               </div>
-            
+
               <div className="space-y-4 sm:space-y-6">
                 {/* Name Input */}
                 <div>
@@ -188,6 +190,30 @@ function HomePage() {
                   />
                 </div>
 
+                {/* Session Duration */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium mb-2 text-slate-300">
+                    GD Session Length
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[5, 10, 15].map((minutes) => (
+                      <button
+                        key={minutes}
+                        type="button"
+                        onClick={() => setDurationMinutes(minutes)}
+                        aria-pressed={durationMinutes === minutes}
+                        className={`rounded-lg sm:rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${durationMinutes === minutes
+                          ? 'border-purple-500 bg-purple-500/20 text-white'
+                          : 'border-white/10 bg-[#1a1a2e] text-slate-400 hover:border-white/25 hover:text-white'
+                          }`}
+                      >
+                        {minutes} minutes
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-slate-500">The session ends automatically and opens your feedback when time is up.</p>
+                </div>
+
                 {/* Topic Selection */}
                 <div>
                   <label className="block text-xs sm:text-sm font-medium mb-2 sm:mb-3 text-slate-300 flex items-center gap-2">
@@ -199,19 +225,17 @@ function HomePage() {
                       <div
                         key={topic.id}
                         onClick={() => setSelectedTopic(topic)}
-                        className={`flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 ${
-                          selectedTopic?.id === topic.id
-                            ? 'bg-purple-500/20 border-2 border-purple-500'
-                            : 'bg-[#1a1a2e] border border-transparent hover:border-white/20'
-                        }`}
+                        className={`flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 ${selectedTopic?.id === topic.id
+                          ? 'bg-purple-500/20 border-2 border-purple-500'
+                          : 'bg-[#1a1a2e] border border-transparent hover:border-white/20'
+                          }`}
                       >
                         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                           {/* Radio Circle */}
-                          <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            selectedTopic?.id === topic.id
-                              ? 'border-purple-500 bg-purple-500'
-                              : 'border-slate-600'
-                          }`}>
+                          <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedTopic?.id === topic.id
+                            ? 'border-purple-500 bg-purple-500'
+                            : 'border-slate-600'
+                            }`}>
                             {selectedTopic?.id === topic.id && (
                               <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full"></div>
                             )}
@@ -251,7 +275,7 @@ function HomePage() {
                     </>
                   )}
                 </button>
-                
+
                 {/* Info Box */}
                 <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[#1a1a2e]/50 border border-white/5">
                   <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 flex-shrink-0 mt-0.5" />
