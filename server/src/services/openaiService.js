@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Custom Model API Configuration
+// Custom Model API Configuration — points to the Colab FastAPI backend
 const MODEL_API_URL = process.env.MODEL_API_URL?.trim();
 
 const getModelApiUrl = () => {
@@ -17,282 +17,275 @@ const getModelApiUrl = () => {
 
 const isMissingModelApiUrlError = (error) => error?.code === 'MODEL_API_URL_MISSING';
 
+const createModelApiError = (message, status = 502, code = 'MODEL_API_UNAVAILABLE', details) => {
+  const error = new Error(message);
+  error.status = status;
+  error.code = code;
+  if (details) {
+    error.details = details;
+  }
+  return error;
+};
+
 // Session management
 let currentSessionId = null;
-let lastModelResponse = null;
-let parsedBobResponse = null;
-let parsedJannetResponse = null;
 
-// Initialize a new debate session with the custom model
+// Initialize a new debate session with the Colab FastAPI backend
+// Colab endpoint: POST /api/sessions
 export const initializeModelSession = async (userName, topic) => {
   try {
     const modelApiUrl = getModelApiUrl();
     console.log('🚀 Initializing model session...');
-    console.log(`📡 Connecting to: ${modelApiUrl}/debate/start`);
-    
-    const response = await fetch(`${modelApiUrl}/debate/start`, {
+    console.log(`📡 Connecting to: ${modelApiUrl}/api/sessions`);
+
+    const response = await fetch(`${modelApiUrl}/api/sessions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        user_name: userName,
+        user_name: userName || 'Student',
         topic: topic,
-        participants: ['Bob', 'Jannet']
+        duration_minutes: 10,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Model API error:', errorText);
-      throw new Error(`Failed to start session: ${response.status}`);
+      throw createModelApiError(
+        `Model API failed to start session (${response.status}).`,
+        502,
+        'MODEL_API_HTTP_ERROR',
+        errorText
+      );
     }
 
     const data = await response.json();
     currentSessionId = data.session_id;
     console.log('✅ Model session initialized:', currentSessionId);
-    
+    console.log('📄 Opening message from', data.opening_speaker, ':', data.opening_message);
+
     return {
       sessionId: data.session_id,
-      assistantOutput: data.assistant_output,
-      roundNumber: data.round_number,
-      isComplete: data.is_complete
+      // The Colab backend returns opening_message + opening_speaker (always "Bob")
+      bobResponse: data.opening_message || '',
+      jannetResponse: '', // Jannet doesn't speak at session start
+      roundNumber: 0,
+      isComplete: false,
+      remainingSeconds: data.remaining_seconds,
     };
   } catch (error) {
     if (isMissingModelApiUrlError(error)) {
       throw error;
     }
     console.error('❌ Error initializing model session:', error);
-    return null;
+    throw createModelApiError(
+      'Unable to initialize model session. Check MODEL_API_URL and model backend availability.',
+      502,
+      error?.code || 'MODEL_API_UNAVAILABLE',
+      error?.message
+    );
   }
 };
 
-// Send user reply and get AI responses from custom model
+// Send user reply and get AI response from Colab FastAPI
+// Colab endpoint: POST /api/sessions/{session_id}/reply
 const getModelResponse = async (sessionId, userReply) => {
   try {
     const modelApiUrl = getModelApiUrl();
     console.log('📤 Sending to model:', userReply.substring(0, 50) + '...');
-    
-    const response = await fetch(`${modelApiUrl}/debate/reply`, {
+
+    const response = await fetch(`${modelApiUrl}/api/sessions/${sessionId}/reply`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        session_id: sessionId,
-        user_reply: userReply
+        text: userReply,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Model API error:', errorText);
-      
-      // Check if debate is completed
-      if (errorText.includes('already completed') || errorText.includes('not found')) {
-        console.log('🏁 Debate session completed by model');
+
+      // Check if debate is completed or session not found
+      if (errorText.includes('has ended') || errorText.includes('not found')) {
+        console.log('🏁 Debate session completed/expired');
         currentSessionId = null;
-        return { assistantOutput: '', isComplete: true, debateEnded: true };
+        return { bobResponse: '', jannetResponse: '', isComplete: true, debateEnded: true };
       }
-      
-      throw new Error(`Failed to get response: ${response.status}`);
+
+      throw createModelApiError(
+        `Model API failed to generate reply (${response.status}).`,
+        502,
+        'MODEL_API_HTTP_ERROR',
+        errorText
+      );
     }
 
     const data = await response.json();
     console.log('✅ Model response received');
-    console.log('📄 Raw output:', data.assistant_output);
-    
+    console.log('📄 Speaker:', data.speaker, '| Round:', data.round_number);
+    console.log('📄 Response:', data.assistant_output);
+
+    // The updated Colab backend returns both participants for each student turn.
+    // Keep the single-response shape as a fallback for older running notebooks.
+    const responses = Array.isArray(data.responses) && data.responses.length
+      ? data.responses
+      : [{ speaker: data.speaker, text: data.assistant_output || data.response }];
+    const normalizedResponses = responses
+      .map((turn) => ({
+        speaker: String(turn.speaker || '').trim(),
+        text: String(turn.text || turn.assistant_output || '').trim(),
+      }))
+      .filter((turn) => turn.text && ['bob', 'jannet'].includes(turn.speaker.toLowerCase()))
+      .map((turn) => ({ ...turn, key: turn.speaker.toLowerCase() }));
+    const bobResponse = normalizedResponses.find((turn) => turn.key === 'bob')?.text || '';
+    const jannetResponse = normalizedResponses.find((turn) => turn.key === 'jannet')?.text || '';
+    const speaker = normalizedResponses[0]?.speaker || String(data.speaker || '').trim();
+    const botText = normalizedResponses[0]?.text || String(data.assistant_output || data.response || '').trim();
+
     return {
-      assistantOutput: data.assistant_output,
+      bobResponse,
+      jannetResponse,
+      responses: normalizedResponses.map(({ speaker, text }) => ({ speaker, text })),
+      speaker: speaker,
       roundNumber: data.round_number,
       isComplete: data.is_complete,
-      debateEnded: data.is_complete
+      debateEnded: data.is_complete,
+      remainingSeconds: data.remaining_seconds,
+      liveScores: data.live_scores || null,
+      studentName: data.student_name || 'Student',
     };
   } catch (error) {
     if (isMissingModelApiUrlError(error)) {
       throw error;
     }
     console.error('❌ Error getting model response:', error);
-    return null;
+    throw createModelApiError(
+      'Unable to get model reply. Check MODEL_API_URL and model backend availability.',
+      502,
+      error?.code || 'MODEL_API_UNAVAILABLE',
+      error?.message
+    );
   }
 };
 
-// Extract only the FIRST response from each speaker (before any "Round" markers)
-const parseModelOutput = (output) => {
-  if (!output) {
-    return { bobResponse: '', jannetResponse: '' };
-  }
-
-  console.log('📄 Raw output:', output);
-  
-  let bobResponse = '';
-  let jannetResponse = '';
-  
-  // Find first Bob: and first Jannet: positions
-  const bobIndex = output.indexOf('Bob:');
-  const jannetIndex = output.indexOf('Jannet:');
-  
-  if (bobIndex !== -1 && jannetIndex !== -1) {
-    if (bobIndex < jannetIndex) {
-      // Bob speaks first, then Jannet
-      // Bob's text: from "Bob:" to "Jannet:"
-      bobResponse = output.substring(bobIndex + 4, jannetIndex);
-      
-      // Jannet's text: from "Jannet:" to next "Round" or next "Bob:" (whichever comes first)
-      const afterJannet = output.substring(jannetIndex + 7);
-      const roundIndex = afterJannet.search(/Round\s*\d+/i);
-      const nextBobIndex = afterJannet.indexOf('Bob:');
-      
-      if (roundIndex !== -1 && (nextBobIndex === -1 || roundIndex < nextBobIndex)) {
-        jannetResponse = afterJannet.substring(0, roundIndex);
-      } else if (nextBobIndex !== -1) {
-        jannetResponse = afterJannet.substring(0, nextBobIndex);
-      } else {
-        jannetResponse = afterJannet;
-      }
-    } else {
-      // Jannet speaks first, then Bob
-      jannetResponse = output.substring(jannetIndex + 7, bobIndex);
-      
-      const afterBob = output.substring(bobIndex + 4);
-      const roundIndex = afterBob.search(/Round\s*\d+/i);
-      const nextJannetIndex = afterBob.indexOf('Jannet:');
-      
-      if (roundIndex !== -1 && (nextJannetIndex === -1 || roundIndex < nextJannetIndex)) {
-        bobResponse = afterBob.substring(0, roundIndex);
-      } else if (nextJannetIndex !== -1) {
-        bobResponse = afterBob.substring(0, nextJannetIndex);
-      } else {
-        bobResponse = afterBob;
-      }
-    }
-  } else if (bobIndex !== -1) {
-    // Only Bob present - get text until "Round" marker
-    const afterBob = output.substring(bobIndex + 4);
-    const roundIndex = afterBob.search(/Round\s*\d+/i);
-    bobResponse = roundIndex !== -1 ? afterBob.substring(0, roundIndex) : afterBob;
-  } else if (jannetIndex !== -1) {
-    // Only Jannet present
-    const afterJannet = output.substring(jannetIndex + 7);
-    const roundIndex = afterJannet.search(/Round\s*\d+/i);
-    jannetResponse = roundIndex !== -1 ? afterJannet.substring(0, roundIndex) : afterJannet;
-    bobResponse = output; // Give Bob something to say
-  } else {
-    bobResponse = output;
-  }
-  
-  // Clean up - trim whitespace
-  bobResponse = bobResponse.trim();
-  jannetResponse = jannetResponse.trim();
-  
-  console.log('✅ Bob (cleaned):', bobResponse);
-  console.log('✅ Jannet (cleaned):', jannetResponse);
-  
-  return { bobResponse, jannetResponse };
-};
-
-// AI Agent 1 - Bob
-export const generateAIResponse = async (topic, stance, userArgument, previousRounds = []) => {
+// Finish the session and get the final report from Colab
+// Colab endpoint: POST /api/sessions/{session_id}/finish
+export const finishModelSession = async (sessionId) => {
   try {
-    console.log('🤖 AI Agent 1 - Bob');
-    
-    // Initialize session if needed
-    if (!currentSessionId) {
-      const session = await initializeModelSession('User', topic);
-      if (session) {
-        currentSessionId = session.sessionId;
-        lastModelResponse = session.assistantOutput;
-      }
-    } else {
-      // Get new response from model
-      const modelResponse = await getModelResponse(currentSessionId, userArgument);
-      
-      if (modelResponse) {
-        if (modelResponse.debateEnded) {
-          console.log('🏁 Debate ended');
-          lastModelResponse = null;
-          parsedBobResponse = null;
-          parsedJannetResponse = null;
-          return { response: null, debateEnded: true };
-        }
-        lastModelResponse = modelResponse.assistantOutput;
-      }
+    const modelApiUrl = getModelApiUrl();
+    const sid = sessionId || currentSessionId;
+    if (!sid) {
+      console.log('⚠️ No active session to finish');
+      return null;
     }
-    
-    // Parse BOTH responses and store them
-    if (lastModelResponse) {
-      const { bobResponse, jannetResponse } = parseModelOutput(lastModelResponse);
-      parsedBobResponse = bobResponse;
-      parsedJannetResponse = jannetResponse;
-      
-      console.log('📦 Stored Bob response:', parsedBobResponse ? 'Yes' : 'No');
-      console.log('📦 Stored Jannet response:', parsedJannetResponse ? 'Yes' : 'No');
-      
-      // If Bob has a response, return it
-      if (parsedBobResponse) {
-        return { response: parsedBobResponse, debateEnded: false };
-      }
-      
-      // If only Jannet responded, use full raw output for Bob
-      // (Model sometimes only outputs one speaker)
-      if (!parsedBobResponse && jannetResponse) {
-        console.log('📝 Only Jannet responded, using raw output for Bob');
-        return { response: lastModelResponse, debateEnded: false };
-      }
+
+    console.log('🏁 Finishing session:', sid);
+    const response = await fetch(`${modelApiUrl}/api/sessions/${sid}/finish`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Finish API error:', errorText);
+      throw createModelApiError(
+        `Model API failed to finish session (${response.status}).`,
+        502,
+        'MODEL_API_HTTP_ERROR',
+        errorText
+      );
     }
-    
-    // Fallback
-    console.log('⚠️ Using fallback for Bob');
-    return { 
-      response: "That's an interesting perspective. Can you elaborate on your reasoning?", 
-      debateEnded: false 
+
+    const data = await response.json();
+    console.log('✅ Session finished, got final report');
+    currentSessionId = null;
+
+    return {
+      sessionId: data.session_id,
+      isComplete: data.is_complete,
+      finalReport: data.final_report,
     };
   } catch (error) {
     if (isMissingModelApiUrlError(error)) {
       throw error;
     }
-    console.error('Error:', error);
-    return { 
-      response: "I'd like to hear more about your thoughts on this topic.", 
-      debateEnded: false 
-    };
+    console.error('❌ Error finishing session:', error);
+    throw createModelApiError(
+      'Unable to finish model session. Check MODEL_API_URL and model backend availability.',
+      502,
+      error?.code || 'MODEL_API_UNAVAILABLE',
+      error?.message
+    );
   }
 };
 
-// AI Agent 2 - Jannet
-export const generateAI2Response = async (topic, stance, userArgument, ai1Response, previousRounds = []) => {
+// AI Agent 1 - Bob: get response for the current round
+export const generateAIResponse = async (topic, stance, userArgument, previousRounds = [], sessionId = currentSessionId) => {
   try {
-    console.log('🤖 AI Agent 2 - Jannet');
-    console.log('📦 Retrieved Jannet response:', parsedJannetResponse ? 'Yes' : 'No');
-    
-    // Use the stored Jannet response
-    if (parsedJannetResponse) {
-      const response = parsedJannetResponse;
-      parsedJannetResponse = null; // Clear after use
-      return response;
+    console.log('🤖 AI Agent 1 - Bob');
+
+    // Initialize session if needed
+    if (!sessionId) {
+      const session = await initializeModelSession('User', topic);
+      currentSessionId = session.sessionId;
+      console.log('📦 Got opening from Bob:', session.bobResponse ? 'Yes' : 'No');
+
+      // Return the opening message — at session start only Bob speaks
+      return {
+        response: session.bobResponse || 'Let me start the discussion on this topic.',
+        jannetResponse: '', // No Jannet response at start
+        debateEnded: false,
+        liveScores: null,
+      };
     }
-    
-    // If Jannet has no response but Bob did, skip Jannet's turn
-    // (Model only had Bob speak this round)
-    if (parsedBobResponse && !parsedJannetResponse) {
-      console.log('📝 Only Bob responded this round, Jannet will skip');
-      return null; // Signal to skip Jannet
+
+    // Get new response from model (sends user's argument)
+    const modelResponse = await getModelResponse(sessionId, userArgument);
+    if (modelResponse.debateEnded) {
+      console.log('🏁 Debate ended');
+      return { response: null, jannetResponse: null, debateEnded: true, liveScores: null };
     }
-    
-    // Fallback
-    console.log('⚠️ Using fallback for Jannet');
-    return "I'd like to add a different perspective to this discussion.";
+
+    // Return both participant responses in the order produced by Colab.
+    console.log('📦 Bob:', modelResponse.bobResponse ? 'Yes' : 'No');
+    console.log('📦 Jannet:', modelResponse.jannetResponse ? 'Yes' : 'No');
+
+    return {
+      response: modelResponse.bobResponse || '',
+      jannetResponse: modelResponse.jannetResponse || '',
+      responses: modelResponse.responses || [],
+      speaker: modelResponse.speaker,
+      debateEnded: false,
+      liveScores: modelResponse.liveScores,
+    };
   } catch (error) {
-    console.error('Error:', error);
-    return "Let me offer another viewpoint on this matter.";
+    console.error('❌ generateAIResponse failed:', error);
+    throw error;
   }
+};
+
+// AI Agent 2 - Jannet: The Colab backend alternates speakers automatically.
+// With the new integration, generateAIResponse already returns both responses
+// when available. This function extracts the Jannet part.
+export const generateAI2Response = async (topic, stance, userArgument, ai1Response, previousRounds = []) => {
+  // Jannet's response is now bundled into the generateAIResponse result.
+  // The controller calls this for backward compatibility; if the AI result already
+  // has a jannetResponse, it was set by generateAIResponse. Return null to signal
+  // the controller should use what was already returned.
+  console.log('🤖 AI Agent 2 - Jannet (handled by Colab alternation)');
+  return null;
 };
 
 // Reset session
 export const resetModelSession = () => {
   currentSessionId = null;
-  lastModelResponse = null;
-  parsedBobResponse = null;
-  parsedJannetResponse = null;
   console.log('🔄 Session reset');
 };
+
+// Get the current session ID
+export const getCurrentSessionId = () => currentSessionId;

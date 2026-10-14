@@ -14,6 +14,17 @@ interface Debate {
   userStance: string;
   aiStance: string;
   currentRound: number;
+  initialMessage?: string;
+}
+
+interface DetailedScores {
+  fluency?: number;
+  topic_relevance?: number;
+  content_reasoning?: number;
+  clarity_delivery?: number;
+  confidence_composure?: number;
+  examples_application?: number;
+  participation?: number;
 }
 
 interface Round {
@@ -26,6 +37,7 @@ interface Round {
     strength: number;
     engagement: number;
   };
+  detailedScores?: DetailedScores;
   timestamp: Date;
 }
 
@@ -125,13 +137,21 @@ function DebateRoom() {
   const [isTimerActive, setIsTimerActive] = useState(false); // Don't start timer until AI finishes
   const [rounds, setRounds] = useState<Round[]>([]);
   const [aiHasSpoken, setAiHasSpoken] = useState(false); // Track if AI has spoken this round
+  const [liveDetailedScores, setLiveDetailedScores] = useState<DetailedScores | null>(null);
   const socketRef = useRef<Socket | null>(null);
   
   // Typewriter hooks for each AI
   const ai1Typewriter = useTypewriter();
   const ai2Typewriter = useTypewriter();
   
-  const { isListening, startListening, stopListening } = useSpeechRecognition(
+  const {
+    isListening,
+    startListening,
+    stopListening,
+    isSupported: isSpeechSupported,
+    lastError: speechError,
+    hasMicPermission,
+  } = useSpeechRecognition(
     (transcript) => setUserTranscript(transcript)
   );
   
@@ -179,6 +199,23 @@ function DebateRoom() {
       if (userInput) {
         setUserScore(response.data.totalUserScore);
         
+        // Store the detailed Colab scores if available
+        const detailedScores = response.data.scores?.fluency !== undefined
+          ? {
+              fluency: response.data.scores.fluency,
+              topic_relevance: response.data.scores.topic_relevance,
+              content_reasoning: response.data.scores.content_reasoning,
+              clarity_delivery: response.data.scores.clarity_delivery,
+              confidence_composure: response.data.scores.confidence_composure,
+              examples_application: response.data.scores.examples_application,
+              participation: response.data.scores.participation,
+            }
+          : undefined;
+
+        if (detailedScores) {
+          setLiveDetailedScores(detailedScores);
+        }
+
         // Add to rounds history
         const newRound: Round = {
           roundNumber: roundNumber,
@@ -190,61 +227,40 @@ function DebateRoom() {
             strength: response.data.scores?.strength || 0,
             engagement: response.data.scores?.engagement || 0
           },
+          detailedScores,
           timestamp: new Date()
         };
         setRounds(prevRounds => [...prevRounds, newRound]);
       }
       
-      // ============ STEP 1: BOB (AI1) SPEAKS FIRST ============
-      console.log('🎤 Bob response:', response.data.aiResponse);
-      const bobText = response.data.aiResponse;
-      
       setIsAISpeaking(true); // Mark AI as speaking
-      
-      if (bobText) {
-        setCurrentSpeaker('ai1');
-        
-        // Start Bob's typewriter synced with speech (150 WPM matches speech rate 1.0)
-        ai1Typewriter.typeText(bobText, 150);
-        
-        // Wait for Bob's speech to FULLY complete before continuing (male voice)
-        console.log('🔊 Bob starting to speak...');
-        await speak(bobText, 'male');
-        console.log('✅ Bob finished speaking');
-        
-        // Show Bob's full text after speech ends (for persistent display)
-        ai1Typewriter.complete(bobText);
-        setAi1FullResponse(bobText);
-        
-        // Clear current speaker
+
+      // Speak every Colab turn in order. Older notebooks return only one turn,
+      // so build the same list from the legacy participant fields when needed.
+      const aiTurns: Array<{ speaker: string; text: string }> = response.data.aiTurns?.length
+        ? response.data.aiTurns
+        : [
+            { speaker: 'Bob', text: response.data.aiResponse || '' },
+            { speaker: 'Jannet', text: response.data.ai2Response || '' },
+          ].filter((turn) => turn.text);
+
+      for (const [turnIndex, turn] of aiTurns.entries()) {
+        const isBob = turn.speaker.toLowerCase() === 'bob';
+        const text = turn.text;
+        if (!text) continue;
+
+        setCurrentSpeaker(isBob ? 'ai1' : 'ai2');
+        const typewriter = isBob ? ai1Typewriter : ai2Typewriter;
+        typewriter.typeText(text, 150);
+        await speak(text, isBob ? 'male' : 'female');
+        typewriter.complete(text);
+        if (isBob) setAi1FullResponse(text);
+        else setAi2FullResponse(text);
         setCurrentSpeaker(null);
-      }
-      
-      // ============ PAUSE BETWEEN SPEAKERS ============
-      console.log('⏸️ Pausing between speakers...');
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // ============ STEP 2: JANNET (AI2) SPEAKS SECOND ============
-      const jannetText = response.data.ai2Response;
-      console.log('🎤 Jannet response:', jannetText);
-      
-      if (jannetText) {
-        setCurrentSpeaker('ai2');
-        
-        // Start Jannet's typewriter synced with speech
-        ai2Typewriter.typeText(jannetText, 150);
-        
-        // Wait for Jannet's speech to FULLY complete before continuing (female voice)
-        console.log('🔊 Jannet starting to speak...');
-        await speak(jannetText, 'female');
-        console.log('✅ Jannet finished speaking');
-        
-        // Show Jannet's full text after speech ends (for persistent display)
-        ai2Typewriter.complete(jannetText);
-        setAi2FullResponse(jannetText);
-        
-        // Clear current speaker
-        setCurrentSpeaker(null);
+
+        if (turnIndex < aiTurns.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 900));
+        }
       }
       
       setIsAISpeaking(false); // AI finished speaking
@@ -276,7 +292,10 @@ function DebateRoom() {
     fetchDebateDetails();
     
     // Initialize socket
-    socketRef.current = io('http://localhost:3000');
+    socketRef.current = io('/', {
+      path: '/socket.io',
+      transports: ['websocket', 'polling']
+    });
     socketRef.current.emit('join-debate', debateId);
     
     socketRef.current.on('ai-response', (data) => {
@@ -290,14 +309,38 @@ function DebateRoom() {
     };
   }, [debateId]);
 
-  // Trigger AI to speak first when debate is loaded
+  // Play the opening message created with the Colab session. The test UI follows
+  // this same flow: Bob opens, then a bot replies after each student turn.
   useEffect(() => {
     if (debate && !aiHasSpoken && !isProcessing) {
-      // AI speaks first when GD starts
-      console.log('🎬 Starting GD - AI speaks first');
-      getAIResponses('');
+      const opening = debate.initialMessage?.trim();
+      if (!opening) {
+        console.error('GD session has no opening message');
+        setIsUserTurn(true);
+        setIsTimerActive(true);
+        setAiHasSpoken(true);
+        return;
+      }
+
+      setAiHasSpoken(true);
+      setIsProcessing(true);
+      setIsUserTurn(false);
+      setIsTimerActive(false);
+      setIsAISpeaking(true);
+      setCurrentSpeaker('ai1');
+      ai1Typewriter.typeText(opening, 150);
+      void speak(opening, 'male').then(() => {
+        ai1Typewriter.complete(opening);
+        setAi1FullResponse(opening);
+        setCurrentSpeaker(null);
+        setIsAISpeaking(false);
+        setIsProcessing(false);
+        setIsUserTurn(true);
+        setTimeLeft(90);
+        setIsTimerActive(true);
+      });
     }
-  }, [debate, aiHasSpoken, isProcessing]);
+  }, [debate, aiHasSpoken, isProcessing, ai1Typewriter.typeText, ai1Typewriter.complete, speak]);
 
   useEffect(() => {
     // Timer countdown - only when it's user's turn
@@ -319,6 +362,9 @@ function DebateRoom() {
   };
 
   const handleStartSpeaking = () => {
+    if (!isSpeechSupported) {
+      return;
+    }
     startListening();
     socketRef.current?.emit('user-speaking', { debateId });
   };
@@ -373,7 +419,13 @@ function DebateRoom() {
     getAIResponses('');
   };
 
-  const endGD = () => {
+  const endGD = async () => {
+    try {
+      // Call the finish endpoint to get the final report from Colab
+      await axios.post(`/api/debates/${debateId}/finish`);
+    } catch (error) {
+      console.error('Error finishing debate:', error);
+    }
     navigate(`/summary/${debateId}`);
   };
 
@@ -573,10 +625,20 @@ function DebateRoom() {
                     </p>
                   </div>
                 </div>
+
+                {!isListening && (
+                  <textarea
+                    value={userTranscript}
+                    onChange={(e) => setUserTranscript(e.target.value)}
+                    placeholder="Mic not working? Type your response here..."
+                    className="w-full mb-3 p-3 rounded-xl bg-[#12121f] border border-white/10 text-slate-200 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                    rows={3}
+                  />
+                )}
                 
                 <button
                   onClick={isListening ? handleStopSpeaking : handleStartSpeaking}
-                  disabled={!isUserTurn || isAISpeaking}
+                  disabled={!isUserTurn || isAISpeaking || !isSpeechSupported}
                   className={`w-full py-2.5 sm:py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-xs sm:text-sm ${
                     isListening
                       ? 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-lg shadow-rose-500/30 animate-pulse-glow'
@@ -605,6 +667,27 @@ function DebateRoom() {
                     </>
                   )}
                 </button>
+
+                {speechError && (
+                  <p className="mt-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
+                    {speechError}
+                  </p>
+                )}
+
+                <p className="mt-2 text-[11px] text-slate-400">
+                  Web Speech status: {isSpeechSupported ? 'supported' : 'not supported'} | Mic permission:{' '}
+                  {hasMicPermission === null ? 'not requested' : hasMicPermission ? 'granted' : 'denied'}
+                </p>
+
+                {!isListening && (
+                  <button
+                    onClick={submitArgument}
+                    disabled={!isUserTurn || isAISpeaking || !userTranscript.trim()}
+                    className="mt-2 w-full py-2.5 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white shadow-lg shadow-emerald-500/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                  >
+                    Submit Typed Response
+                  </button>
+                )}
               </div>
 
               {/* AI Agent 1 - Bob */}
@@ -756,6 +839,36 @@ function DebateRoom() {
                   3-way GD: You + 2 AI participants share the 90-second discussion round
                 </p>
               </div>
+
+              {/* Live Detailed Scores from Colab */}
+              {liveDetailedScores && (
+                <div className="mt-4 p-4 rounded-xl bg-white/[0.02] border border-purple-500/20">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-4 h-4 text-purple-400" />
+                    <span className="text-sm font-medium text-purple-300">Live Score Breakdown (Latest Round)</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { key: 'fluency', label: 'Fluency', color: 'text-blue-400' },
+                      { key: 'topic_relevance', label: 'Relevance', color: 'text-emerald-400' },
+                      { key: 'content_reasoning', label: 'Reasoning', color: 'text-violet-400' },
+                      { key: 'clarity_delivery', label: 'Clarity', color: 'text-cyan-400' },
+                      { key: 'confidence_composure', label: 'Confidence', color: 'text-amber-400' },
+                      { key: 'examples_application', label: 'Examples', color: 'text-pink-400' },
+                      { key: 'participation', label: 'Participation', color: 'text-teal-400' },
+                    ].map(({ key, label, color }) => {
+                      const val = liveDetailedScores[key as keyof DetailedScores];
+                      if (val === undefined || val === null) return null;
+                      return (
+                        <div key={key} className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5 text-center">
+                          <div className={`text-lg font-bold ${color}`}>{val}/10</div>
+                          <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">{label}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
