@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mic, Trophy, BookOpen, Sparkles, Brain, Zap, Target, ArrowRight, Search, X } from 'lucide-react';
+import { Mic, Trophy, BookOpen, Brain, Zap, Target, ArrowRight, Search, X, Users } from 'lucide-react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { HeroSection } from '../components/ui/hero-section-dark';
+import { Feature08 } from '../components/ui/feature-08';
+import { BorderBeam } from 'border-beam';
 
 interface Topic {
   id: number;
@@ -20,6 +22,12 @@ function HomePage() {
     { id: 4, title: "Is climate change the biggest threat to humanity?", category: "Environment", difficulty: "Hard" },
     { id: 5, title: "Should college education be free?", category: "Education", difficulty: "Medium" },
     { id: 6, title: "Is work-life balance achievable in modern times?", category: "Lifestyle", difficulty: "Easy" },
+    { id: 13, title: "Should AI tools be allowed in schools and universities?", category: "Technology & Education", difficulty: "Medium" },
+    { id: 14, title: "Is digital privacy more important than online convenience?", category: "Technology & Society", difficulty: "Medium" },
+    { id: 15, title: "Can a four-day work week improve productivity?", category: "Workplace & Career", difficulty: "Easy" },
+    { id: 16, title: "Should public transport be free in major cities?", category: "Urban Development", difficulty: "Medium" },
+    { id: 17, title: "Is online education as effective as classroom learning?", category: "Education", difficulty: "Easy" },
+    { id: 18, title: "Should social media platforms be accountable for misinformation?", category: "Technology & Society", difficulty: "Hard" },
   ]);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [topicSearch, setTopicSearch] = useState('');
@@ -108,37 +116,20 @@ function HomePage() {
       {/* Features and Form Section */}
       <div className="py-10 sm:py-16 lg:py-20 px-3 sm:px-4 lg:px-8 relative" ref={formSectionRef}>
         <div className="max-w-6xl mx-auto relative z-10">
-          {/* Section Header */}
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-4 sm:mb-6">
-              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" />
-              <span className="text-xs sm:text-sm font-medium text-[#c3e879]">A little practice goes a long way</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 px-2">
-              Practice that feels <span className="gradient-text">like practice</span>
-            </h2>
-            <p className="text-slate-400 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto px-4">
-              Get comfortable speaking up, responding to different viewpoints, and making your ideas easy to follow.
-            </p>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 mb-10 sm:mb-16 lg:mb-20">
-            {[
-              { icon: Mic, title: "Speak naturally", desc: "Use your voice or type a response.", color: "from-[#c3e879] to-[#93b84f]" },
-              { icon: Brain, title: "Hear other views", desc: "Bob and Jannet bring different angles.", color: "from-[#89c9b2] to-[#579d85]" },
-              { icon: Target, title: "See what works", desc: "Get clear scores with helpful context.", color: "from-[#91b9cf] to-[#5a8da6]" },
-              { icon: Trophy, title: "Build a habit", desc: "Review sessions and notice progress.", color: "from-[#ddc485] to-[#b3995d]" },
-            ].map((feature, index) => (
-              <div key={index} className="group rounded-xl border border-white/[0.08] bg-[#131918] p-4 sm:p-6 transition-colors hover:bg-[#171f1b] animate-slide-up" style={{ animationDelay: `${index * 80}ms` }}>
-                  <div className={`bg-gradient-to-br ${feature.color} w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-3 sm:mb-4`}>
-                    <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold mb-1.5 text-white">{feature.title}</h3>
-                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
+          <Feature08
+            className="mb-12 sm:mb-16 lg:mb-20"
+            eyebrow="The PrepCircle practice loop"
+            title="Practice for the moments that matter."
+            description="Build the skills that help you contribute clearly, engage with others, and leave a strong impression in a group discussion."
+            features={[
+              { icon: Mic, title: 'Speak or type', description: 'Share your point in the way that feels most natural, then stay focused on the discussion.', glow: 'rgba(142,229,208,.14)' },
+              { icon: Brain, title: 'Hear both sides', description: 'Bob and Jannet bring different viewpoints so you can practice responding in the moment.', glow: 'rgba(111,172,223,.14)' },
+              { icon: Users, title: 'Practice as a group', description: 'Take turns, build on ideas, and get used to the pace of a real interview GD.', glow: 'rgba(195,232,121,.13)' },
+              { icon: BookOpen, title: 'Choose your topic', description: 'Explore current issues across technology, careers, education, society, and more.', glow: 'rgba(225,188,112,.13)' },
+              { icon: Target, title: 'Get useful feedback', description: 'See what worked in your contribution and where a clearer argument could help.', glow: 'rgba(177,148,230,.14)' },
+              { icon: Trophy, title: 'See your progress', description: 'Review past sessions and spot the communication habits you are building.', glow: 'rgba(142,229,208,.14)' },
+            ]}
+          />
 
           {/* Setup Form */}
           <div className="relative animate-scale-in max-w-4xl mx-auto">
@@ -165,16 +156,18 @@ function HomePage() {
                   <label htmlFor="user-name" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 text-slate-300">
                     Your Name <span className="text-rose-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    id="user-name"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    maxLength={60}
-                    autoComplete="name"
-                    className="w-full px-4 py-3 bg-[#0d1210] border border-white/10 rounded-lg text-white text-sm sm:text-base placeholder-slate-500 focus:outline-none focus:border-[#c3e879]/50 focus:ring-2 focus:ring-[#c3e879]/15 transition-all"
-                    placeholder="e.g. Aditi Sharma"
-                  />
+                  <BorderBeam size="sm" colorVariant="forest" strength={0.68} className="w-full">
+                    <input
+                      type="text"
+                      id="user-name"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      maxLength={60}
+                      autoComplete="name"
+                      className="w-full rounded-[7px] border border-transparent bg-[#0d1210] px-4 py-3 text-sm text-white placeholder-slate-500 transition-all focus:border-[#c3e879]/35 focus:outline-none focus:ring-0 sm:text-base"
+                      placeholder="e.g. Aditi Sharma"
+                    />
+                  </BorderBeam>
                 </div>
 
                 {/* Session Duration */}
@@ -208,27 +201,29 @@ function HomePage() {
                     Choose Discussion Topic <span className="text-rose-500">*</span>
                   </label>
                   <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="group relative w-full sm:max-w-sm">
-                      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[#8ee5d0]" />
-                      <input
-                        type="search"
-                        value={topicSearch}
-                        onChange={(event) => setTopicSearch(event.target.value)}
-                        placeholder="Search topics or categories"
-                        aria-label="Search discussion topics"
-                        className="peer h-11 w-full rounded-xl border border-white/[0.09] bg-[#090e14]/80 pl-10 pr-10 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 hover:border-white/[0.16] focus:border-[#8ee5d0]/45 focus:ring-4 focus:ring-[#8ee5d0]/[0.07] [&::-webkit-search-cancel-button]:hidden"
-                      />
-                      {topicSearch && (
-                        <button
-                          type="button"
-                          onClick={() => setTopicSearch('')}
-                          aria-label="Clear topic search"
-                          className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/[0.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8ee5d0]"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                    </div>
+                    <BorderBeam size="sm" colorVariant="forest" strength={0.56} className="w-full sm:max-w-sm">
+                      <div className="group relative rounded-xl">
+                        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[#8ee5d0]" />
+                        <input
+                          type="search"
+                          value={topicSearch}
+                          onChange={(event) => setTopicSearch(event.target.value)}
+                          placeholder="Search topics or categories"
+                          aria-label="Search discussion topics"
+                          className="h-11 w-full rounded-[11px] border border-transparent bg-[#090e14]/95 pl-10 pr-10 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 [&::-webkit-search-cancel-button]:hidden"
+                        />
+                        {topicSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setTopicSearch('')}
+                            aria-label="Clear topic search"
+                            className="absolute right-2 top-1/2 flex h-7 w-7 min-h-0 min-w-0 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/[0.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8ee5d0]"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </BorderBeam>
                     <span className="text-xs text-slate-500">{filteredTopics.length} {filteredTopics.length === 1 ? 'topic' : 'topics'}</span>
                   </div>
                   <div className="space-y-2.5 max-h-[250px] sm:max-h-[320px] overflow-y-auto pr-1">

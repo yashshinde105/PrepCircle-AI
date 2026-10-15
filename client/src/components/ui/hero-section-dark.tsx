@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ArrowDown, ArrowRight, AudioLines, Clock3, MessageCircle, Mic, Sparkles, Users } from 'lucide-react';
+import { SonarGrid } from './sonar-grid';
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLElement> {
   title?: string;
@@ -29,8 +30,19 @@ const HeroSection = React.forwardRef<HTMLHeaderElement, HeroSectionProps>(
       className={`relative isolate overflow-hidden border-b border-white/[0.07] ${className}`}
       {...props}
     >
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_78%_42%,rgba(59,130,246,.13),transparent_30%),radial-gradient(ellipse_at_72%_65%,rgba(189,231,102,.08),transparent_32%),linear-gradient(180deg,#0c1118_0%,#0a0e13_100%)]" />
-      <div className="mx-auto grid min-h-[680px] max-w-7xl items-center gap-10 px-5 pb-16 pt-28 sm:px-8 lg:min-h-[760px] lg:grid-cols-[1fr_1fr] lg:gap-8 lg:px-10 lg:pt-24">
+      <SonarGrid
+        color="#8ee5d0"
+        spacing={30}
+        dotRadius={1.2}
+        baseOpacity={0.2}
+        pingEvery={3.4}
+        speed={220}
+        ringWidth={76}
+        amplitude={1.6}
+        pingArea={[0.52, 0.08, 0.98, 0.9]}
+        className="min-h-[680px] cursor-default bg-[radial-gradient(ellipse_at_78%_42%,rgba(59,130,246,.13),transparent_30%),radial-gradient(ellipse_at_72%_65%,rgba(189,231,102,.08),transparent_32%),linear-gradient(180deg,#0c1118_0%,#0a0e13_100%)]"
+      >
+      <div className="relative z-10 mx-auto grid min-h-[680px] max-w-7xl items-center gap-10 px-5 pb-16 pt-28 sm:px-8 lg:min-h-[760px] lg:grid-cols-[1fr_1fr] lg:gap-8 lg:px-10 lg:pt-24">
         <div className="max-w-2xl">
           <div className="mb-7 inline-flex items-center gap-2.5 rounded-full border border-[#8ee5d0]/20 bg-[#8ee5d0]/[0.07] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[.16em] text-[#a9ecdc]">
             <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#8ee5d0] opacity-40" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[#8ee5d0]" /></span>
@@ -106,6 +118,7 @@ const HeroSection = React.forwardRef<HTMLHeaderElement, HeroSectionProps>(
           </div>
         </div>
       </div>
+      </SonarGrid>
     </header>
   ),
 );

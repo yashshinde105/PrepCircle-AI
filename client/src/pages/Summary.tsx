@@ -49,10 +49,10 @@ const SCORE_LABELS: Record<string, string> = {
 const SCORE_COLORS: Record<string, string> = {
   fluency: 'from-blue-500 to-cyan-500',
   topic_relevance: 'from-emerald-500 to-green-500',
-  content_reasoning: 'from-violet-500 to-purple-500',
+  content_reasoning: 'from-[#89bda6] to-[#c3e879]',
   clarity_delivery: 'from-cyan-500 to-teal-500',
   confidence_composure: 'from-amber-500 to-orange-500',
-  examples_application: 'from-pink-500 to-rose-500',
+  examples_application: 'from-[#c3e879] to-rose-500',
   participation: 'from-teal-500 to-emerald-500',
 };
 
@@ -108,13 +108,13 @@ function Summary() {
 
   if (!summary) {
     return (
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-[#0c1118]">
         <Navbar />
         <div className="flex items-center justify-center h-screen">
           <div className="text-center animate-fade-in">
             <div className="relative">
-              <div className="w-20 h-20 border-4 border-purple-500/30 rounded-full mx-auto mb-6"></div>
-              <div className="w-20 h-20 border-4 border-purple-500 border-t-transparent rounded-full animate-spin absolute top-0 left-1/2 -translate-x-1/2"></div>
+              <div className="w-20 h-20 border-4 border-[#c3e879]/20 rounded-full mx-auto mb-6"></div>
+              <div className="w-20 h-20 border-4 border-[#c3e879] border-t-transparent rounded-full animate-spin absolute top-0 left-1/2 -translate-x-1/2"></div>
             </div>
             <h2 className="text-xl font-semibold text-white mb-2">Analyzing Performance</h2>
             <p className="text-slate-400">Preparing your detailed feedback...</p>
@@ -157,48 +157,55 @@ function Summary() {
   const scoreProgress = Math.max(0, Math.min(100, summary.averageScore));
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative isolate overflow-hidden bg-[#0c1118]">
       <Navbar />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_18%_0%,rgba(195,232,121,0.07),transparent_34%),radial-gradient(ellipse_at_90%_24%,rgba(137,189,166,0.06),transparent_30%)]" />
       
-      <div className="pt-28 pb-16 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          {/* Performance Hero Section */}
-          <div className="card border border-purple-500/20 text-center mb-10 animate-scale-in overflow-hidden">
-            {/* Decorative elements */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
-            
-            <div className="grid lg:grid-cols-[220px_1fr] items-center gap-6 lg:gap-10 text-left mb-9">
-              <div className="flex flex-col items-center">
-                <div className="relative w-44 h-44">
-                  <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90" role="img" aria-label={`Overall score ${summary.averageScore} out of 100`}>
-                    <circle cx="80" cy="80" r="66" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="11" />
-                    <circle
-                      cx="80" cy="80" r="66" fill="none" stroke="url(#scoreRing)" strokeWidth="11" strokeLinecap="round"
-                      strokeDasharray={`${(scoreProgress / 100) * 414.7} 414.7`}
-                    />
-                    <defs>
-                      <linearGradient id="scoreRing" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#c3e879" />
-                        <stop offset="100%" stopColor="#89bda6" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-5xl font-bold text-white">{summary.averageScore}</span>
-                    <span className="text-xs uppercase tracking-[0.2em] text-slate-500">out of 100</span>
-                  </div>
-                </div>
-                <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
-                  <span>{getPerformanceIcon(summary.performance)}</span>{summary.performance} performance
-                </div>
-              </div>
+      <main className="px-4 pb-16 pt-24 sm:px-6 lg:px-8 relative z-10">
+        <div className="mx-auto grid max-w-[1440px] gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <aside className="h-fit rounded-2xl border border-white/[0.08] bg-[#111817]/90 p-4 backdrop-blur lg:sticky lg:top-24">
+            <div className="mb-4 px-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#a9d5bd]">Session report</p>
+              <p className="mt-1 truncate text-sm font-medium text-white">{summary.topic}</p>
+            </div>
+            <nav aria-label="Summary sections" className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
+              {[
+                { label: 'Overview', href: '#overview', icon: Sparkles },
+                { label: 'Performance', href: '#performance', icon: TrendingUp },
+                { label: 'Discussion topic', href: '#discussion', icon: Target },
+                { label: 'Contributions', href: '#contributions', icon: MessageCircle },
+                { label: 'Insights', href: '#insights', icon: Lightbulb },
+              ].map((item, index) => (
+                <a key={item.href} href={item.href} className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${index === 0 ? 'bg-[#c3e879]/10 text-[#d4f49c]' : 'text-slate-400 hover:bg-white/[0.05] hover:text-white'}`}>
+                  <item.icon className="h-4 w-4" />{item.label}
+                </a>
+              ))}
+            </nav>
+            <div className="mt-5 hidden rounded-xl border border-white/[0.07] bg-black/20 p-3 lg:block">
+              <div className="flex items-center justify-between text-xs text-slate-400"><span>Overall score</span><span className="text-[#c3e879]">{summary.performance}</span></div>
+              <div className="mt-2 flex items-end gap-1"><span className="text-3xl font-semibold text-white">{summary.averageScore}</span><span className="pb-1 text-xs text-slate-500">/ 100</span></div>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-[#89bda6] to-[#c3e879]" style={{ width: `${scoreProgress}%` }} /></div>
+            </div>
+          </aside>
 
-              <div>
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-violet-300 mb-3">
+          <div className="min-w-0">
+          <div id="overview" className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+            <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#a9d5bd]">Your practice · Session summary</p><h1 className="text-2xl font-semibold text-white sm:text-3xl">Discussion overview</h1></div>
+            <div className="flex items-center gap-2 text-xs text-slate-500"><span className="h-2 w-2 rounded-full bg-[#c3e879]" />Personal performance report</div>
+          </div>
+          {/* Performance Hero Section */}
+          <div className="card relative mb-6 overflow-hidden border border-white/[0.08] text-left animate-scale-in" aria-label="Session performance overview">
+            {/* Decorative elements */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#89bda6] to-transparent"></div>
+            
+            <div className="mb-6">
+              <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+                <div className="max-w-3xl">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#a9d5bd] mb-3">
                   <Sparkles className="w-4 h-4" /> Session debrief
                 </div>
-                <h1 className="text-3xl md:text-5xl font-bold mb-4 text-white">Your discussion, <span className="gradient-text">in focus</span></h1>
-                <p className="text-base md:text-lg text-slate-400 max-w-3xl">
+                <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white">Your discussion, <span className="gradient-text">in focus</span></h2>
+                <p className="text-sm md:text-base leading-7 text-slate-400">
                   {report?.summary || (summary.performance === 'Excellent'
                     ? "Strong work. Your ideas came through clearly and made an impact."
                     : summary.performance === 'Good'
@@ -207,40 +214,32 @@ function Summary() {
                         ? "You have a useful foundation. The analysis below highlights practical next steps."
                         : "Every practice makes the next discussion easier. Start with the insights below.")}
                 </p>
-                <div className="grid sm:grid-cols-3 gap-3 mt-6">
-                  {[
-                    { label: 'Your contributions', value: report?.contributions_evaluated ?? summary.rounds.length, icon: MessageCircle },
-                    { label: 'Session length', value: `${summary.durationMinutes || 10} min`, icon: Clock },
-                    { label: 'Score trend', value: contributionScores.length > 1 && contributionScores[contributionScores.length - 1] > contributionScores[0] ? 'Improving' : 'In progress', icon: TrendingUp },
-                  ].map((stat) => (
-                    <div key={stat.label} className="rounded-xl border border-white/10 bg-white/[0.035] p-3">
-                      <stat.icon className="w-4 h-4 text-cyan-300 mb-2" />
-                      <div className="text-lg font-semibold text-white">{stat.value}</div>
-                      <div className="text-[11px] text-slate-500">{stat.label}</div>
-                    </div>
-                  ))}
+                </div>
+                <div className="flex min-w-[150px] items-center gap-3 rounded-2xl border border-[#c3e879]/20 bg-[#c3e879]/[0.07] px-4 py-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#c3e879]/15 text-lg">{getPerformanceIcon(summary.performance)}</div>
+                  <div><div className="text-2xl font-semibold leading-none text-white">{summary.averageScore}<span className="ml-1 text-xs font-normal text-slate-400">/100</span></div><div className="mt-1 text-xs text-[#c3e879]">{summary.performance}</div></div>
                 </div>
               </div>
             </div>
             
-            {/* Stats Grid */}
-            <div className="grid md:grid-cols-3 gap-5 max-w-3xl mx-auto">
+            {/* Dashboard metric cards */}
+            <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 border-t border-white/[0.07] pt-5">
               {[
-                { label: 'Average contribution score', value: `${summary.averageScore}/100`, icon: Target },
-                { label: 'Highest contribution', value: contributionScores.length ? `${Math.max(...contributionScores)}/100` : '—', icon: Trophy },
-                { label: 'Category insights', value: Object.keys(categoryScores).length || '—', icon: BarChart3 },
+                { label: 'Average score', value: `${summary.averageScore}`, suffix: '/100', icon: Target },
+                { label: 'Highest contribution', value: contributionScores.length ? `${Math.max(...contributionScores)}` : '—', suffix: '/100', icon: Trophy },
+                { label: 'Contributions reviewed', value: `${report?.contributions_evaluated ?? summary.rounds.length}`, suffix: '', icon: MessageCircle },
+                { label: 'Skill dimensions', value: `${Object.keys(categoryScores).length || '—'}`, suffix: '', icon: BarChart3 },
               ].map((stat, index) => (
-                <div key={index} className="rounded-xl border border-white/[0.08] bg-[#131918] p-5 text-center animate-slide-up" style={{ animationDelay: `${index * 80}ms` }}>
-                  <stat.icon className="w-5 h-5 text-[#c3e879] mx-auto mb-3" />
-                  <div className="text-3xl font-semibold text-[#edf3e8] mb-1">{stat.value}</div>
-                  <div className="text-sm text-slate-500">{stat.label}</div>
+                <div key={index} className="rounded-xl border border-white/[0.07] bg-[#131918]/80 p-4 animate-slide-up" style={{ animationDelay: `${index * 80}ms` }}>
+                  <div className="mb-3 flex items-center justify-between"><span className="text-xs text-slate-400">{stat.label}</span><stat.icon className="h-4 w-4 text-[#c3e879]" /></div>
+                  <div className="text-2xl font-semibold text-[#edf3e8]">{stat.value}<span className="ml-1 text-xs font-normal text-slate-500">{stat.suffix}</span></div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Visual performance analysis */}
-          <div className="grid xl:grid-cols-[1.25fr_0.75fr] gap-5 mb-8">
+          <div id="performance" className="grid scroll-mt-28 xl:grid-cols-[1.25fr_0.75fr] gap-5 mb-8">
             <section className="card border border-white/[0.08] animate-slide-up" aria-labelledby="progress-heading">
               <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
@@ -308,14 +307,14 @@ function Summary() {
               )}
             </section>
 
-            <section className="card border border-violet-500/15 bg-gradient-to-br from-[#171126] to-[#10121f] animate-slide-up" aria-labelledby="skills-heading">
+            <section className="card border border-white/[0.08] bg-gradient-to-br from-[#131918] to-[#101514] animate-slide-up" aria-labelledby="skills-heading">
               <div className="flex items-start justify-between gap-4 mb-6">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-violet-300 mb-2">Communication profile</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-[#a9d5bd] mb-2">Communication profile</p>
                   <h2 id="skills-heading" className="text-xl font-semibold text-white">Skill balance</h2>
                   <p className="text-sm text-slate-500 mt-1">A closer look at the habits behind your score.</p>
                 </div>
-                <BarChart3 className="w-5 h-5 text-violet-300 mt-1" />
+                <BarChart3 className="w-5 h-5 text-[#a9d5bd] mt-1" />
               </div>
               {Object.entries(categoryScores).length > 0 ? (
                 <div className="space-y-4">
@@ -342,22 +341,22 @@ function Summary() {
           </div>
 
           {/* Topic Card */}
-          <div className="card border border-purple-500/20 mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
+          <div id="discussion" className="card scroll-mt-28 border border-white/[0.08] mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#89bda6] to-[#c3e879] flex items-center justify-center">
                 <Target className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-xl font-semibold text-white">Discussion Topic</h2>
             </div>
             <p className="text-lg text-slate-200 mb-3">{summary.topic}</p>
             <p className="text-sm text-slate-500 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+              <span className="w-1.5 h-1.5 bg-[#c3e879] rounded-full"></span>
               {summary.rounds.length} contribution{summary.rounds.length !== 1 ? 's' : ''} reviewed · Bob and Jannet responded to each one
             </p>
           </div>
 
           {/* Contribution Analysis */}
-          <div className="card border border-purple-500/20 mb-8 animate-slide-up" style={{ animationDelay: '200ms' }}>
+          <div id="contributions" className="card scroll-mt-28 border border-white/[0.08] mb-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
                 <BarChart3 className="w-5 h-5 text-white" />
@@ -375,7 +374,7 @@ function Summary() {
                   {/* Contribution Header */}
                   <div className="flex items-center justify-between p-4 bg-white/[0.03] border-b border-white/5">
                     <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-lg flex items-center justify-center text-sm font-bold text-white">
+                      <span className="w-8 h-8 bg-gradient-to-br from-[#89bda6] to-[#c3e879] rounded-lg flex items-center justify-center text-sm font-bold text-white">
                         <MessageCircle className="w-4 h-4" />
                       </span>
                       <span className="font-semibold text-white">Your contribution</span>
@@ -417,18 +416,18 @@ function Summary() {
                     </div>
 
                     {/* AI Challenge */}
-                    <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10">
+                    <div className="p-4 rounded-xl bg-[#89bda6]/[0.04] border border-[#89bda6]/15">
                       <div className="flex items-center gap-2 mb-3">
-                        <Sparkles className="w-4 h-4 text-purple-400" />
-                        <span className="font-medium text-purple-400 text-sm">Bob’s response</span>
+                        <Sparkles className="w-4 h-4 text-[#a9d5bd]" />
+                        <span className="font-medium text-[#a9d5bd] text-sm">Bob’s response</span>
                       </div>
                       <p className="text-slate-300 leading-relaxed italic">{round.aiArgument}</p>
                     </div>
                     {round.ai2Argument && (
-                      <div className="p-4 rounded-xl bg-pink-500/5 border border-pink-500/10">
+                      <div className="p-4 rounded-xl bg-[#c3e879]/[0.04] border border-[#c3e879]/15">
                         <div className="flex items-center gap-2 mb-3">
-                          <Sparkles className="w-4 h-4 text-pink-400" />
-                          <span className="font-medium text-pink-400 text-sm">Jannet’s response</span>
+                          <Sparkles className="w-4 h-4 text-[#c3e879]" />
+                          <span className="font-medium text-[#c3e879] text-sm">Jannet’s response</span>
                         </div>
                         <p className="text-slate-300 leading-relaxed italic">{round.ai2Argument}</p>
                       </div>
@@ -440,7 +439,7 @@ function Summary() {
           </div>
 
           {/* Feedback Section — Uses Colab's final report if available */}
-          <div className="card border border-purple-500/20 mb-10 animate-slide-up" style={{ animationDelay: '300ms' }}>
+          <div id="insights" className="card scroll-mt-28 border border-white/[0.08] mb-8 animate-slide-up" style={{ animationDelay: '300ms' }}>
             <h2 className="text-xl font-semibold text-white mb-6">Key Insights & Recommendations</h2>
             
             <div className="grid md:grid-cols-2 gap-5 mb-6">
@@ -556,10 +555,10 @@ function Summary() {
             )}
             
             {/* Overall AI Feedback */}
-            <div className="p-5 rounded-xl bg-purple-500/5 border border-purple-500/20">
+            <div className="p-5 rounded-xl bg-[#89bda6]/[0.04] border border-white/[0.08]">
               <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-5 h-5 text-purple-400" />
-                <h4 className="font-semibold text-purple-400">AI Overall Assessment</h4>
+                <Sparkles className="w-5 h-5 text-[#a9d5bd]" />
+                <h4 className="font-semibold text-[#a9d5bd]">AI Overall Assessment</h4>
               </div>
               <p className="text-slate-300 leading-relaxed">
                 {report?.summary || (
@@ -573,7 +572,7 @@ function Summary() {
                 )}
               </p>
               {report?.evidence_note && (
-                <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-purple-500/10 italic">
+                <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-[#89bda6]/15 italic">
                   {report.evidence_note}
                 </p>
               )}
@@ -597,8 +596,9 @@ function Summary() {
               View Leaderboard
             </button>
           </div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

@@ -273,13 +273,13 @@ function History() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0c1010]">
+      <div className="min-h-screen bg-[#0c1118]">
         <Navbar />
         <div className="flex h-screen items-center justify-center">
           <div className="text-center">
             <div className="relative mb-6">
-              <div className="mx-auto h-20 w-20 rounded-full border-4 border-purple-500/30" />
-              <div className="absolute left-1/2 top-0 h-20 w-20 -translate-x-1/2 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
+              <div className="mx-auto h-20 w-20 rounded-full border-4 border-[#c3e879]/20" />
+              <div className="absolute left-1/2 top-0 h-20 w-20 -translate-x-1/2 animate-spin rounded-full border-4 border-[#c3e879] border-t-transparent" />
             </div>
 
             <h2 className="mb-2 text-xl font-semibold text-white">
@@ -296,20 +296,19 @@ function History() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0c1010]">
+    <div className="relative min-h-screen overflow-hidden bg-[#0c1118]">
       <Navbar />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_18%_0%,rgba(195,232,121,0.07),transparent_34%),radial-gradient(ellipse_at_90%_24%,rgba(137,189,166,0.06),transparent_30%)]" />
       <div className="relative z-10 px-4 pb-16 pt-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
           {/* Header */}
           <div className="mb-12 text-center">
-            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 shadow-lg shadow-violet-500/30">
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl border border-[#c3e879]/20 bg-[#131918] text-[#c3e879] shadow-lg shadow-black/20">
               <Clock className="h-10 w-10 text-white" />
             </div>
 
             <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">
-              <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-                Session History
-              </span>
+              <span>Session History</span>
             </h1>
 
             <p className="text-lg text-slate-400">
@@ -320,7 +319,7 @@ function History() {
           {/* Stats Bar */}
           <div className="mb-10 grid grid-cols-3 gap-4">
             <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm">
-              <MessageCircle className="mx-auto mb-2 h-5 w-5 text-purple-400" />
+              <MessageCircle className="mx-auto mb-2 h-5 w-5 text-[#c3e879]" />
               <div className="text-xl font-bold text-white">
                 {totalSessions}
               </div>
@@ -328,7 +327,7 @@ function History() {
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm">
-              <Trophy className="mx-auto mb-2 h-5 w-5 text-purple-400" />
+              <Trophy className="mx-auto mb-2 h-5 w-5 text-[#c3e879]" />
               <div className="text-xl font-bold text-white">
                 {completedSessions}
               </div>
@@ -336,7 +335,7 @@ function History() {
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm">
-              <Calendar className="mx-auto mb-2 h-5 w-5 text-purple-400" />
+              <Calendar className="mx-auto mb-2 h-5 w-5 text-[#c3e879]" />
               <div className="text-xl font-bold text-white">
                 {totalContributions}
               </div>
@@ -355,7 +354,7 @@ function History() {
                   placeholder="Search by topic..."
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-white placeholder-slate-400 transition-colors focus:border-purple-500/50 focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-[#101514] py-3 pl-12 pr-4 text-white placeholder-slate-400 transition-colors focus:border-[#c3e879]/50 focus:outline-none"
                 />
               </div>
 
@@ -398,7 +397,7 @@ function History() {
                         }}
                         className={`flex w-full items-center justify-between px-4 py-2.5 text-sm transition-colors hover:bg-white/5 ${
                           sortBy === option
-                            ? 'text-purple-400'
+                            ? 'text-[#a9d5bd]'
                             : 'text-slate-300'
                         }`}
                       >
@@ -429,7 +428,7 @@ function History() {
                     onClick={() => setDateFilter(range)}
                     className={`rounded-lg border px-3 py-1.5 text-xs font-medium capitalize transition-all ${
                       dateFilter === range
-                        ? 'border-indigo-500/30 bg-indigo-500/20 text-indigo-400'
+                        ? 'border-[#c3e879]/25 bg-[#c3e879]/10 text-[#c3e879]'
                         : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10'
                     }`}
                   >
@@ -456,7 +455,7 @@ function History() {
                     onClick={() => setFilterStatus(status)}
                     className={`rounded-lg border px-3 py-1.5 text-xs font-medium capitalize transition-all ${
                       filterStatus === status
-                        ? 'border-purple-500/30 bg-purple-500/20 text-purple-400'
+                        ? 'border-[#c3e879]/20 bg-[#89bda6]/10 text-[#a9d5bd]'
                         : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10'
                     }`}
                   >
@@ -505,7 +504,7 @@ function History() {
                         <div
                           key={session.id}
                           onClick={() => fetchConversation(session.id)}
-                          className="group cursor-pointer rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-all hover:bg-white/10"
+                          className="group cursor-pointer rounded-xl border border-white/[0.08] bg-[#101514]/90 p-5 backdrop-blur-sm transition-all hover:border-[#c3e879]/25 hover:bg-[#131918]"
                         >
                           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                             <div className="min-w-0 flex-1">
@@ -524,7 +523,7 @@ function History() {
                               </div>
 
                               {sortBy !== 'topic' && (
-                                <h3 className="mb-2 truncate text-lg font-semibold text-white transition-colors group-hover:text-purple-300">
+                                <h3 className="mb-2 truncate text-lg font-semibold text-white transition-colors group-hover:text-[#c3e879]">
                                   {session.topic}
                                 </h3>
                               )}
@@ -552,8 +551,8 @@ function History() {
                               </div>
                             </div>
 
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 transition-colors group-hover:bg-purple-500/20">
-                              <ArrowRight className="h-5 w-5 text-slate-400 transition-colors group-hover:text-purple-400" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] transition-colors group-hover:bg-[#c3e879]/10">
+                              <ArrowRight className="h-5 w-5 text-slate-400 transition-colors group-hover:text-[#c3e879]" />
                             </div>
                           </div>
                         </div>
@@ -570,7 +569,7 @@ function History() {
       {/* Conversation Modal */}
       {selectedSession && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
+          <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/[0.1] bg-[#101514]">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-white/10 p-6">
               <div>
@@ -610,7 +609,7 @@ function History() {
               {loadingConversation ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
-                    <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-500/30 border-t-purple-500" />
+                    <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-[#c3e879]/20 border-t-[#c3e879]" />
                     <p className="text-slate-400">
                       Loading conversation...
                     </p>
@@ -623,7 +622,7 @@ function History() {
                     key={`${selectedSession.id}-${index}`}
                     className={`rounded-xl p-4 ${
                       message.speaker === selectedSession.userName
-                        ? 'ml-8 border border-purple-500/20 bg-purple-500/10'
+                        ? 'ml-8 border border-[#89bda6]/20 bg-[#89bda6]/[0.06]'
                         : 'mr-8 border border-white/10 bg-white/5'
                     }`}
                   >
@@ -667,7 +666,7 @@ function History() {
 
                 <button
                   onClick={() => setSelectedSession(null)}
-                  className="rounded-lg bg-purple-500/20 px-4 py-2 text-purple-400 transition-colors hover:bg-purple-500/30"
+                  className="rounded-lg bg-[#89bda6]/10 px-4 py-2 text-[#a9d5bd] transition-colors hover:bg-[#89bda6]/15"
                 >
                   Close
                 </button>

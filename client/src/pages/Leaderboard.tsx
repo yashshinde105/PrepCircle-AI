@@ -6,8 +6,9 @@ function Leaderboard() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen">
+    <div className="relative isolate min-h-screen overflow-hidden bg-[#0c1118]">
       <Navbar />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_18%_0%,rgba(195,232,121,0.07),transparent_34%),radial-gradient(ellipse_at_90%_24%,rgba(137,189,166,0.06),transparent_30%)]" />
       <main className="mx-auto max-w-5xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
         <div className="mb-10 max-w-2xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[.18em] text-[#c3e879]">Your practice, your pace</p>
@@ -15,7 +16,7 @@ function Leaderboard() {
           <p className="mt-4 text-base leading-7 text-slate-400">A place to celebrate progress with the PrepCircle community.</p>
         </div>
 
-        <section className="rounded-2xl border border-white/[0.08] bg-[#131918] p-6 sm:p-10" aria-labelledby="leaderboard-status">
+        <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#101514]/90 p-6 sm:p-10 shadow-[0_24px_80px_rgba(0,0,0,0.22)]" aria-labelledby="leaderboard-status">
           <div className="grid gap-8 md:grid-cols-[1fr_230px] md:items-center">
             <div>
               <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#c3e879]/10 text-[#c3e879]">

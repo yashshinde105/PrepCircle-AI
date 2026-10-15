@@ -70,5 +70,113 @@ export const debateTopics = [
     title: "Entrepreneurship vs Secure job: Best career path?",
     category: "Career Planning",
     difficulty: "Medium"
+  },
+  {
+    id: 13,
+    title: "Should AI tools be allowed in schools and universities?",
+    category: "Technology & Education",
+    difficulty: "Medium"
+  },
+  {
+    id: 14,
+    title: "Is digital privacy more important than online convenience?",
+    category: "Technology & Society",
+    difficulty: "Medium"
+  },
+  {
+    id: 15,
+    title: "Can a four-day work week improve productivity?",
+    category: "Workplace & Career",
+    difficulty: "Easy"
+  },
+  {
+    id: 16,
+    title: "Should public transport be free in major cities?",
+    category: "Urban Development",
+    difficulty: "Medium"
+  },
+  {
+    id: 17,
+    title: "Is online education as effective as classroom learning?",
+    category: "Education",
+    difficulty: "Easy"
+  },
+  {
+    id: 18,
+    title: "Should social media platforms be accountable for misinformation?",
+    category: "Technology & Society",
+    difficulty: "Hard"
+  },
+  {
+    id: 19,
+    title: "Should cities prioritize cycling and pedestrians over cars?",
+    category: "Urban Planning",
+    difficulty: "Medium"
+  },
+  {
+    id: 20,
+    title: "Is financial literacy as important as academic education?",
+    category: "Education & Finance",
+    difficulty: "Easy"
+  },
+  {
+    id: 21,
+    title: "Can renewable energy replace fossil fuels in the near future?",
+    category: "Environment & Energy",
+    difficulty: "Hard"
+  },
+  {
+    id: 22,
+    title: "Is space exploration worth public investment?",
+    category: "Science & Society",
+    difficulty: "Medium"
+  },
+  {
+    id: 23,
+    title: "Does globalization create more opportunity or inequality?",
+    category: "Economy & Society",
+    difficulty: "Hard"
+  },
+  {
+    id: 24,
+    title: "Should governments regulate AI-generated content?",
+    category: "Technology & Policy",
+    difficulty: "Hard"
+  },
+  {
+    id: 25,
+    title: "Is a cashless society better for everyone?",
+    category: "Economy & Technology",
+    difficulty: "Medium"
+  },
+  {
+    id: 26,
+    title: "Should mental health days be part of workplace leave?",
+    category: "Workplace & Wellbeing",
+    difficulty: "Easy"
+  },
+  {
+    id: 27,
+    title: "Should companies prioritize employee wellbeing over short-term profit?",
+    category: "Business & Ethics",
+    difficulty: "Medium"
+  },
+  {
+    id: 28,
+    title: "Should hiring decisions rely less on university degrees?",
+    category: "Career & Education",
+    difficulty: "Medium"
+  },
+  {
+    id: 29,
+    title: "Does tourism help local communities more than it harms them?",
+    category: "Economy & Culture",
+    difficulty: "Medium"
+  },
+  {
+    id: 30,
+    title: "Should voting be mandatory in a democracy?",
+    category: "Governance & Society",
+    difficulty: "Hard"
   }
 ];
